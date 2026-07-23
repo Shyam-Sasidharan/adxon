@@ -4,11 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Adxon CMS Login</title>
+    <link rel="icon" href="{{ asset('assets/brand/adxon-mark-dark.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/styles.css') }}">
 </head>
 <body class="admin-body login-body">
     <main class="login-card">
-        <a class="brand" href="{{ route('home') }}"><span class="brand-mark">A</span><span>Adxon CMS</span></a>
+        <a class="brand" href="{{ route('home') }}"><img class="brand-logo" src="{{ asset('assets/brand/adxon-full-light.png') }}" alt="Adxon CMS"></a>
         <h1>Admin Login</h1>
         @error('login')
             <p class="admin-alert">{{ $message }}</p>

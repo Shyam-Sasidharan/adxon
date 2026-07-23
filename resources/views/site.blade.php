@@ -22,13 +22,13 @@
     <meta property="og:title" content="{{ $seo['title'] }}">
     <meta property="og:description" content="{{ $seo['description'] }}">
     <meta property="og:type" content="website">
+    <link rel="icon" href="{{ asset('assets/brand/adxon-mark-dark.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/styles.css') }}">
 </head>
 <body class="site-body">
     <header class="site-header" data-nav>
         <a class="brand" href="#top" aria-label="Adxon home">
-            <span class="brand-mark">A</span>
-            <span><strong>{{ $settings['brand'] }}</strong><small>Digital Agency</small></span>
+            <img class="brand-logo" src="{{ asset('assets/brand/adxon-full-light.png') }}" alt="Adxon">
         </a>
         <button class="menu-button" type="button" data-menu aria-label="Toggle navigation">
             <span></span><span></span>
@@ -262,8 +262,7 @@
     <footer class="site-footer">
         <div>
             <a class="brand" href="#top">
-                <span class="brand-mark">A</span>
-                <span><strong>{{ $settings['brand'] }}</strong><small>Digital Agency</small></span>
+                <img class="brand-logo footer-logo" src="{{ asset('assets/brand/adxon-full-light.png') }}" alt="Adxon">
             </a>
             <p>{{ $seo['description'] }}</p>
         </div>

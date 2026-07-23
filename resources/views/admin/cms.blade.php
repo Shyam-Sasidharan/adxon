@@ -8,11 +8,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Adxon CMS</title>
+    <link rel="icon" href="{{ asset('assets/brand/adxon-mark-dark.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/styles.css') }}">
 </head>
 <body class="admin-body">
     <aside class="admin-sidebar">
-        <a class="brand" href="{{ route('home') }}"><span class="brand-mark">A</span><span>Adxon CMS</span></a>
+        <a class="brand" href="{{ route('home') }}"><img class="brand-logo" src="{{ asset('assets/brand/adxon-full-light.png') }}" alt="Adxon CMS"></a>
         <nav>
             <a class="{{ $active === 'dashboard' ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">Dashboard</a>
             @foreach ($collections as $key => $meta)
