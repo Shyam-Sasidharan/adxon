@@ -1,6 +1,6 @@
 # Adxon Laravel Website and CMS
 
-Adxon is now a Laravel project with a premium agency website and a lightweight CMS.
+Adxon is now a Laravel project with a premium agency website, CMS, CRM-style lead center, invoice management, users/roles, and reports.
 
 ## Local URLs
 
@@ -30,11 +30,28 @@ ADXON_ADMIN_USER=admin
 ADXON_ADMIN_PASSWORD=change-this-password
 ```
 
-## CMS Sections
+## Create User Login
+
+1. Login to `admin`.
+2. Open `Users and Roles`.
+3. Fill `Name`, `Email`, `Password`, `Role`, `Status`, and permissions.
+4. Click `Save User`.
+5. The new user can login from the same CMS login page using their email and password.
+
+User passwords are stored as encrypted hashes in `storage/app/adxon/admin.json`.
+
+## Admin Sections
 
 - Dashboard
+- Lead Center
+- Invoice Management
+- Users and Roles
+- Reports
 - Services
-- Packages
+- Package - Content Production
+- Package - Social Media
+- Package - Paid Ads
+- Package - Combinations
 - Portfolio
 - Testimonials
 - Blogs
@@ -48,6 +65,18 @@ CMS content is stored here:
 
 ```text
 storage/app/adxon/content.json
+```
+
+Admin panel data for analytics, leads, invoices, users, notifications, and audit logs is stored here:
+
+```text
+storage/app/adxon/admin.json
+```
+
+Enterprise admin architecture, user flows, schema, ER diagram, API documentation, and component notes are documented here:
+
+```text
+docs/admin-enterprise-blueprint.md
 ```
 
 The previous plain PHP version was preserved here:

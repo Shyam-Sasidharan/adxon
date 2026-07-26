@@ -29,3 +29,18 @@ document.querySelectorAll('[data-repeat-form]').forEach((form) => {
         refreshNames();
     });
 });
+
+const adminBody = document.querySelector('.admin-body');
+const themeToggle = document.querySelector('[data-theme-toggle]');
+
+if (adminBody && themeToggle) {
+    const savedMode = localStorage.getItem('adxon-admin-theme');
+    if (savedMode === 'light') {
+        adminBody.classList.add('light-mode');
+    }
+
+    themeToggle.addEventListener('click', () => {
+        adminBody.classList.toggle('light-mode');
+        localStorage.setItem('adxon-admin-theme', adminBody.classList.contains('light-mode') ? 'light' : 'dark');
+    });
+}
