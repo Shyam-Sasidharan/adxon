@@ -44,3 +44,11 @@ if (adminBody && themeToggle) {
         localStorage.setItem('adxon-admin-theme', adminBody.classList.contains('light-mode') ? 'light' : 'dark');
     });
 }
+
+document.querySelectorAll('[data-sidebar-toggle]').forEach((toggle) => {
+    toggle.addEventListener('click', () => {
+        const group = toggle.closest('[data-sidebar-group]');
+        const isOpen = group?.classList.toggle('open') ?? false;
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+});

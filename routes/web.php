@@ -13,13 +13,16 @@ Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login'])->name('admin.login.post');
     Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
     Route::get('/leads', [AdminController::class, 'leads'])->name('admin.leads');
+    Route::get('/leads/list', [AdminController::class, 'leadList'])->name('admin.leads.list');
     Route::post('/leads', [AdminController::class, 'saveLead'])->name('admin.leads.save');
     Route::patch('/leads/{lead}/stage', [AdminController::class, 'updateLeadStage'])->name('admin.leads.stage');
     Route::get('/invoices', [AdminController::class, 'invoices'])->name('admin.invoices');
+    Route::get('/invoices/list', [AdminController::class, 'invoiceList'])->name('admin.invoices.list');
     Route::post('/invoices', [AdminController::class, 'saveInvoice'])->name('admin.invoices.save');
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
     Route::post('/users', [AdminController::class, 'saveUser'])->name('admin.users.save');
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
+    Route::get('/reports/audit-logs', [AdminController::class, 'auditLogs'])->name('admin.reports.audit');
     Route::get('/reports/export/{type}', [AdminController::class, 'exportReport'])->name('admin.reports.export');
     Route::get('/search', [AdminController::class, 'search'])->name('admin.search');
     Route::get('/enquiries', [AdminController::class, 'enquiries'])->name('admin.enquiries');

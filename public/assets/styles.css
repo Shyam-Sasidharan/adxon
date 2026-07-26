@@ -1145,6 +1145,7 @@ select:focus {
 }
 
 .admin-sidebar nav a,
+.sidebar-toggle,
 .logout-link {
     width: 100%;
     padding: 12px 14px;
@@ -1158,15 +1159,56 @@ select:focus {
 }
 
 .admin-body.light-mode .admin-sidebar nav a,
+.admin-body.light-mode .sidebar-toggle,
 .admin-body.light-mode .logout-link {
     color: #354052;
 }
 
 .admin-sidebar nav a.active,
 .admin-sidebar nav a:hover,
+.sidebar-toggle.active,
+.sidebar-toggle:hover,
 .logout-link:hover {
     background: rgba(229, 184, 77, 0.14);
     color: var(--gold-2);
+}
+
+.sidebar-group {
+    display: grid;
+    gap: 4px;
+}
+
+.sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar-caret {
+    color: currentColor;
+    font-size: 0.78rem;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-group.open .sidebar-caret {
+    transform: rotate(180deg);
+}
+
+.sidebar-menu {
+    display: none;
+    gap: 4px;
+    padding-left: 10px;
+}
+
+.sidebar-group.open .sidebar-menu {
+    display: grid;
+}
+
+.sidebar-menu a {
+    padding: 10px 12px;
+    border-left: 1px solid rgba(229, 184, 77, 0.22);
+    border-radius: 6px;
+    font-size: 0.88rem;
 }
 
 .logout-link {

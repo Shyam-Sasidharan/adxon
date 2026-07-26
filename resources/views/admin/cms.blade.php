@@ -2,9 +2,12 @@
     $titles = [
         'dashboard' => 'Dashboard',
         'leads' => 'Lead Center',
+        'lead_list' => 'Lead List',
         'invoices' => 'Invoice Management',
+        'invoice_list' => 'Invoice List',
         'users' => 'User Access',
         'reports' => 'Reports',
+        'audit_logs' => 'Audit Logs',
         'search' => 'Global Search',
         'enquiries' => 'Website Enquiries',
         'settings' => 'Settings & SEO',
@@ -41,11 +44,40 @@
             @if ($canAccess('Invoices'))
                 <a class="{{ $active === 'invoices' ? 'active' : '' }}" href="{{ route('admin.invoices') }}">Invoices</a>
             @endif
+            @if ($canAccess('Lead View') || $canAccess('Invoices'))
+                <div class="sidebar-group {{ in_array($active, ['lead_list', 'invoice_list'], true) ? 'open' : '' }}" data-sidebar-group>
+                    <button class="sidebar-toggle {{ in_array($active, ['lead_list', 'invoice_list'], true) ? 'active' : '' }}" type="button" data-sidebar-toggle aria-expanded="{{ in_array($active, ['lead_list', 'invoice_list'], true) ? 'true' : 'false' }}">
+                        <span>List</span>
+                        <span class="sidebar-caret">&#9662;</span>
+                    </button>
+                    <div class="sidebar-menu">
+                        @if ($canAccess('Lead View'))
+                            <a class="{{ $active === 'lead_list' ? 'active' : '' }}" href="{{ route('admin.leads.list') }}">Lead List</a>
+                        @endif
+                        @if ($canAccess('Invoices'))
+                            <a class="{{ $active === 'invoice_list' ? 'active' : '' }}" href="{{ route('admin.invoices.list') }}">Invoice List</a>
+                        @endif
+                    </div>
+                </div>
+            @endif
             @if ($canAccess('User Management'))
                 <a class="{{ $active === 'users' ? 'active' : '' }}" href="{{ route('admin.users') }}">Users & Roles</a>
             @endif
-            @if ($canAccess('Reports'))
-                <a class="{{ $active === 'reports' ? 'active' : '' }}" href="{{ route('admin.reports') }}">Reports</a>
+            @if ($canAccess('Reports') || $canAccess('Audit Logs'))
+                <div class="sidebar-group {{ in_array($active, ['reports', 'audit_logs'], true) ? 'open' : '' }}" data-sidebar-group>
+                    <button class="sidebar-toggle {{ in_array($active, ['reports', 'audit_logs'], true) ? 'active' : '' }}" type="button" data-sidebar-toggle aria-expanded="{{ in_array($active, ['reports', 'audit_logs'], true) ? 'true' : 'false' }}">
+                        <span>Reports</span>
+                        <span class="sidebar-caret">&#9662;</span>
+                    </button>
+                    <div class="sidebar-menu">
+                        @if ($canAccess('Reports'))
+                            <a class="{{ $active === 'reports' ? 'active' : '' }}" href="{{ route('admin.reports') }}">Report Exports</a>
+                        @endif
+                        @if ($canAccess('Audit Logs'))
+                            <a class="{{ $active === 'audit_logs' ? 'active' : '' }}" href="{{ route('admin.reports.audit') }}">Audit Logs</a>
+                        @endif
+                    </div>
+                </div>
             @endif
             @if ($canAccess('Global Search'))
                 <a class="{{ $active === 'search' ? 'active' : '' }}" href="{{ route('admin.search') }}">Global Search</a>
@@ -261,6 +293,9 @@
                     </div>
                 </section>
             </section>
+        @endif
+
+        @if ($active === 'lead_list')
             <section class="admin-panel">
                 <h2>Lead List</h2>
                 <div class="responsive-table">
@@ -370,6 +405,9 @@
                 <label>Paid Amount <input name="paid" type="number" min="0" value="0"></label>
                 <button class="button button-primary" type="submit">Create Invoice</button>
             </form>
+        @endif
+
+        @if ($active === 'invoice_list')
             <section class="admin-panel">
                 <h2>Invoice List</h2>
                 <div class="responsive-table">
@@ -458,16 +496,17 @@
                     </div>
                 </article>
             </section>
-            @if ($canAccess('Audit Logs'))
-                <section class="admin-panel">
-                    <h2>Audit Logs</h2>
-                    <div class="admin-table">
-                        @foreach (array_reverse($adminData['audit_logs']) as $log)
-                            <div><strong>{{ $log['action'] }}</strong><span>{{ $log['user'] }} / {{ $log['date'] }}</span><p>{{ $log['subject'] }}</p></div>
-                        @endforeach
-                    </div>
-                </section>
-            @endif
+        @endif
+
+        @if ($active === 'audit_logs')
+            <section class="admin-panel">
+                <h2>Audit Logs</h2>
+                <div class="admin-table">
+                    @foreach (array_reverse($adminData['audit_logs']) as $log)
+                        <div><strong>{{ $log['action'] }}</strong><span>{{ $log['user'] }} / {{ $log['date'] }}</span><p>{{ $log['subject'] }}</p></div>
+                    @endforeach
+                </div>
+            </section>
         @endif
 
         @if ($active === 'search')

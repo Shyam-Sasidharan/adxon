@@ -167,6 +167,15 @@ class AdminController extends Controller
         return $this->view('leads', $content, $adminData);
     }
 
+    public function leadList(Request $request, AdxonContent $content, AdxonAdminData $adminData): RedirectResponse|View
+    {
+        if ($redirect = $this->requirePermission($request, 'Lead View')) {
+            return $redirect;
+        }
+
+        return $this->view('lead_list', $content, $adminData);
+    }
+
     public function saveLead(Request $request, AdxonAdminData $adminData): RedirectResponse
     {
         if ($redirect = $this->requirePermission($request, 'Lead Edit')) {
@@ -202,6 +211,15 @@ class AdminController extends Controller
         }
 
         return $this->view('invoices', $content, $adminData);
+    }
+
+    public function invoiceList(Request $request, AdxonContent $content, AdxonAdminData $adminData): RedirectResponse|View
+    {
+        if ($redirect = $this->requirePermission($request, 'Invoices')) {
+            return $redirect;
+        }
+
+        return $this->view('invoice_list', $content, $adminData);
     }
 
     public function saveInvoice(Request $request, AdxonAdminData $adminData): RedirectResponse
@@ -271,6 +289,15 @@ class AdminController extends Controller
         }
 
         return $this->view('reports', $content, $adminData);
+    }
+
+    public function auditLogs(Request $request, AdxonContent $content, AdxonAdminData $adminData): RedirectResponse|View
+    {
+        if ($redirect = $this->requirePermission($request, 'Audit Logs')) {
+            return $redirect;
+        }
+
+        return $this->view('audit_logs', $content, $adminData);
     }
 
     public function search(Request $request, AdxonContent $content, AdxonAdminData $adminData): RedirectResponse|View
@@ -398,6 +425,7 @@ class AdminController extends Controller
             'Invoices' => 'admin.invoices',
             'User Management' => 'admin.users',
             'Reports' => 'admin.reports',
+            'Audit Logs' => 'admin.reports.audit',
             'Global Search' => 'admin.search',
             'CMS' => 'admin.settings',
         ];
