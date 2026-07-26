@@ -32,16 +32,28 @@ document.querySelectorAll('[data-repeat-form]').forEach((form) => {
 
 const adminBody = document.querySelector('.admin-body');
 const themeToggle = document.querySelector('[data-theme-toggle]');
+const themeLogos = document.querySelectorAll('[data-theme-logo]');
+
+const refreshThemeLogos = () => {
+    themeLogos.forEach((logo) => {
+        const source = adminBody?.classList.contains('light-mode') ? logo.dataset.lightSrc : logo.dataset.darkSrc;
+        if (source) {
+            logo.src = source;
+        }
+    });
+};
 
 if (adminBody && themeToggle) {
     const savedMode = localStorage.getItem('adxon-admin-theme');
     if (savedMode === 'light') {
         adminBody.classList.add('light-mode');
     }
+    refreshThemeLogos();
 
     themeToggle.addEventListener('click', () => {
         adminBody.classList.toggle('light-mode');
         localStorage.setItem('adxon-admin-theme', adminBody.classList.contains('light-mode') ? 'light' : 'dark');
+        refreshThemeLogos();
     });
 }
 

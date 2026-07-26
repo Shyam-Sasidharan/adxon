@@ -33,7 +33,9 @@
 </head>
 <body class="admin-body">
     <aside class="admin-sidebar">
-        <a class="brand" href="{{ route('home') }}"><img class="brand-logo" src="{{ asset('assets/brand/adxon-full-light.png') }}" alt="Adxon CMS"></a>
+        <a class="brand" href="{{ route('home') }}">
+            <img class="brand-logo" src="{{ asset('assets/brand/adxon-full-light.png') }}" data-theme-logo data-dark-src="{{ asset('assets/brand/adxon-full-light.png') }}" data-light-src="{{ asset('assets/brand/adxon-full-dark.png') }}" alt="Adxon CMS">
+        </a>
         <nav>
             @if ($canAccess('Dashboard'))
                 <a class="{{ $active === 'dashboard' ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">Dashboard</a>
