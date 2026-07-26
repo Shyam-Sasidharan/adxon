@@ -417,6 +417,7 @@
                             <label class="checkbox-label"><input type="checkbox" name="permissions[]" value="{{ $permission }}"> {{ $permission }}</label>
                         @endforeach
                     </div>
+                    <label class="checkbox-label wide"><input type="checkbox" name="send_login_email" value="1" checked> Email login details to this user</label>
                     <button class="button button-primary" type="submit">Save User</button>
                 </form>
                 <section class="admin-panel">

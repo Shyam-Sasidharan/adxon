@@ -89,10 +89,10 @@ class AdxonAdminData
         $this->save($data);
     }
 
-    public function addUser(array $payload): void
+    public function addUser(array $payload): array
     {
         $data = $this->all();
-        $data['users'][] = [
+        $user = [
             'id' => (string) Str::uuid(),
             'name' => trim((string) ($payload['name'] ?? '')),
             'email' => trim((string) ($payload['email'] ?? '')),
@@ -102,8 +102,12 @@ class AdxonAdminData
             'status' => trim((string) ($payload['status'] ?? 'Active')),
             'created_at' => now()->toDateString(),
         ];
+
+        $data['users'][] = $user;
         $data['audit_logs'][] = $this->log('User created', $payload['name'] ?? 'User');
         $this->save($data);
+
+        return $user;
     }
 
     public function report(string $type): array

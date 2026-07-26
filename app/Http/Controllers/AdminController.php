@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Support\AdxonContent;
 use App\Support\AdxonAdminData;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
+use Throwable;
 
 class AdminController extends Controller
 {
@@ -238,9 +241,25 @@ class AdminController extends Controller
             'name' => ['required', 'string', 'max:160'],
             'email' => ['required', 'email', 'max:180'],
             'password' => ['required', 'string', 'min:6', 'max:120'],
+            'send_login_email' => ['nullable', 'boolean'],
         ]);
 
-        $adminData->addUser($request->all());
+        $createdUser = $adminData->addUser($request->all());
+
+        if ($request->boolean('send_login_email')) {
+            try {
+                $this->sendUserLoginEmail($createdUser, (string) $request->input('password'));
+
+                return redirect()->route('admin.users')->with('status', 'User saved and login email sent.');
+            } catch (Throwable $exception) {
+                Log::error('Adxon user login email failed', [
+                    'email' => $createdUser['email'] ?? '',
+                    'message' => $exception->getMessage(),
+                ]);
+
+                return redirect()->route('admin.users')->with('status', 'User saved, but email could not be sent. Please check mail settings.');
+            }
+        }
 
         return redirect()->route('admin.users')->with('status', 'User saved.');
     }
@@ -382,5 +401,18 @@ class AdminController extends Controller
             'Global Search' => 'admin.search',
             'CMS' => 'admin.settings',
         ];
+    }
+
+    private function sendUserLoginEmail(array $user, string $password): void
+    {
+        Mail::send('mail.admin-user-created', [
+            'user' => $user,
+            'password' => $password,
+            'loginUrl' => route('admin.login'),
+        ], function ($message) use ($user): void {
+            $message
+                ->to((string) $user['email'], (string) $user['name'])
+                ->subject('Your Adxon CMS access is ready');
+        });
     }
 }
