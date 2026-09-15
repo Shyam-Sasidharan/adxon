@@ -256,6 +256,8 @@ class AdxonContent
                 ['title' => 'Social Media Management', 'summary' => 'Plan, post, engage, and grow your social presence with consistency.', 'icon' => 'SM'],
                 ['title' => 'Paid Ads & Lead Generation', 'summary' => 'Targeted ad campaigns that bring leads and boost sales.', 'icon' => 'AD'],
                 ['title' => 'Branding & Design', 'summary' => 'Premium visuals, campaign assets, and identity systems for stronger recall.', 'icon' => 'BD'],
+                ['title' => 'Website Development', 'summary' => 'Fast, responsive websites that showcase your brand and turn visitors into customers.', 'icon' => 'WD', 'benefits' => "Custom website design\nResponsive layouts for every device\nPerformance and search optimization"],
+                ['title' => 'App Development', 'summary' => 'Custom mobile and web applications that simplify workflows and connect your business with customers.', 'icon' => 'AP', 'benefits' => "Mobile and web applications\nIntuitive user experiences\nBusiness integrations and scalable functionality"],
             ],
             'packages' => [
                 ['name' => 'Basic Production', 'price' => 'Rs 18,000 - Rs 20,000', 'period' => '/ month or shoot', 'features' => "1 shoot day photo + video\n2 professional reels\n8 edited photos\nColor correction and grading\nDelivery in social-ready formats", 'highlight' => false],

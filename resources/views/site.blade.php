@@ -43,7 +43,7 @@
             <div class="services-grid">
                 @foreach ($content['services'] as $service)
                     <article class="service-tile">
-                        <div class="tile-top"><i data-lucide="{{ ['clapperboard', 'messages-square', 'chart-no-axes-combined', 'pen-tool'][$loop->index % 4] }}"></i><span>{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span></div>
+                        <div class="tile-top"><i data-lucide="{{ ['CP' => 'clapperboard', 'SM' => 'messages-square', 'AD' => 'chart-no-axes-combined', 'BD' => 'pen-tool', 'WD' => 'monitor', 'AP' => 'smartphone'][$service['icon'] ?? ''] ?? 'sparkles' }}"></i><span>{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span></div>
                         <h3>{{ $service['title'] }}</h3><p>{{ $service['summary'] }}</p>
                         <details><summary>Learn more <i data-lucide="plus"></i></summary>
                             <ul class="benefit-list">@foreach ($lines($service['benefits'] ?? "A strategy tailored to your brand\nClear deliverables and reporting") as $benefit)<li>{{ $benefit }}</li>@endforeach</ul>
