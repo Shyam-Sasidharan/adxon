@@ -16,7 +16,7 @@
     $title = $titles[$active] ?? ($collections[$active]['title'] ?? ucfirst($active));
     $analytics = $adminData['analytics'];
     $canAccess = $canAccess ?? fn (string $permission): bool => true;
-    $permissions = ['Dashboard', 'Analytics', 'CRM', 'Lead View', 'Lead Edit', 'Lead Delete', 'Invoices', 'Payments', 'Payment Analytics', 'CMS', 'Reports', 'User Management', 'Audit Logs', 'Global Search'];
+    $permissions = ['Dashboard', 'Analytics', 'Campaigns', 'Clients', 'CRM', 'Lead View', 'Lead Edit', 'Lead Delete', 'Invoices', 'Payments', 'Payment Analytics', 'CMS', 'Reports', 'User Management', 'Audit Logs', 'Global Search'];
     $maxTraffic = max($analytics['traffic_trend']);
     $maxGrowth = max($analytics['visitor_growth']);
     $maxRevenueTrend = max($analytics['revenue_trend']);
@@ -30,97 +30,48 @@
     <title>Adxon CMS</title>
     <link rel="icon" href="{{ asset('assets/brand/adxon-mark-dark.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/styles.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/platform.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/workspace.css') }}">
+    <script src="{{ asset('assets/vendor/lucide.js') }}" defer></script>
+    <script src="{{ asset('assets/vendor/chart.js') }}" defer></script>
+    <script src="{{ asset('assets/workspace.js') }}" defer></script>
 </head>
-<body class="admin-body">
+<body class="admin-body light-mode">
+    <a class="skip-link" href="#workspace-main">Skip to content</a>
     <aside class="admin-sidebar">
         <a class="brand" href="{{ route('home') }}">
             <img class="brand-logo" src="{{ asset('assets/brand/adxon-full-light.png') }}" data-theme-logo data-dark-src="{{ asset('assets/brand/adxon-full-light.png') }}" data-light-src="{{ asset('assets/brand/adxon-full-dark.png') }}" alt="Adxon CMS">
         </a>
-        <nav>
-            @if ($canAccess('Dashboard'))
-                <a class="{{ $active === 'dashboard' ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">Dashboard</a>
-            @endif
-            @if ($canAccess('Lead View'))
-                <a class="{{ $active === 'leads' ? 'active' : '' }}" href="{{ route('admin.leads') }}">Lead Center</a>
-            @endif
-            @if ($canAccess('Invoices'))
-                <a class="{{ $active === 'invoices' ? 'active' : '' }}" href="{{ route('admin.invoices') }}">Invoices</a>
-            @endif
-            @if ($canAccess('Lead View') || $canAccess('Invoices'))
-                <div class="sidebar-group {{ in_array($active, ['lead_list', 'invoice_list'], true) ? 'open' : '' }}" data-sidebar-group>
-                    <button class="sidebar-toggle {{ in_array($active, ['lead_list', 'invoice_list'], true) ? 'active' : '' }}" type="button" data-sidebar-toggle aria-expanded="{{ in_array($active, ['lead_list', 'invoice_list'], true) ? 'true' : 'false' }}">
-                        <span>List</span>
-                        <span class="sidebar-caret">&#9662;</span>
-                    </button>
-                    <div class="sidebar-menu">
-                        @if ($canAccess('Lead View'))
-                            <a class="{{ $active === 'lead_list' ? 'active' : '' }}" href="{{ route('admin.leads.list') }}">Lead List</a>
-                        @endif
-                        @if ($canAccess('Invoices'))
-                            <a class="{{ $active === 'invoice_list' ? 'active' : '' }}" href="{{ route('admin.invoices.list') }}">Invoice List</a>
-                        @endif
-                    </div>
-                </div>
-            @endif
-            @if ($canAccess('User Management'))
-                <a class="{{ $active === 'users' ? 'active' : '' }}" href="{{ route('admin.users') }}">Users & Roles</a>
-            @endif
-            @if ($canAccess('Reports') || $canAccess('Audit Logs'))
-                <div class="sidebar-group {{ in_array($active, ['reports', 'audit_logs'], true) ? 'open' : '' }}" data-sidebar-group>
-                    <button class="sidebar-toggle {{ in_array($active, ['reports', 'audit_logs'], true) ? 'active' : '' }}" type="button" data-sidebar-toggle aria-expanded="{{ in_array($active, ['reports', 'audit_logs'], true) ? 'true' : 'false' }}">
-                        <span>Reports</span>
-                        <span class="sidebar-caret">&#9662;</span>
-                    </button>
-                    <div class="sidebar-menu">
-                        @if ($canAccess('Reports'))
-                            <a class="{{ $active === 'reports' ? 'active' : '' }}" href="{{ route('admin.reports') }}">Report Exports</a>
-                        @endif
-                        @if ($canAccess('Audit Logs'))
-                            <a class="{{ $active === 'audit_logs' ? 'active' : '' }}" href="{{ route('admin.reports.audit') }}">Audit Logs</a>
-                        @endif
-                    </div>
-                </div>
-            @endif
-            @if ($canAccess('Global Search'))
-                <a class="{{ $active === 'search' ? 'active' : '' }}" href="{{ route('admin.search') }}">Global Search</a>
-            @endif
-            @if ($canAccess('CMS'))
-                <span class="sidebar-label">CMS</span>
-                @foreach ($collections as $key => $meta)
-                    <a class="{{ $active === $key ? 'active' : '' }}" href="{{ route('admin.collection', $key) }}">{{ $meta['title'] }}</a>
-                @endforeach
-                <a class="{{ $active === 'enquiries' ? 'active' : '' }}" href="{{ route('admin.enquiries') }}">Enquiries</a>
-                <a class="{{ $active === 'settings' ? 'active' : '' }}" href="{{ route('admin.settings') }}">Settings & SEO</a>
-            @endif
-        </nav>
+        @include('admin.navigation')
         <form method="post" action="{{ route('admin.logout') }}">
             @csrf
             <button class="logout-link" type="submit">Logout</button>
         </form>
     </aside>
 
-    <main class="admin-main">
+    <main class="admin-main" id="workspace-main">
         <div class="admin-topbar">
             <div>
-                <p class="eyebrow">CMS Ready</p>
+                <p class="eyebrow">Adxon / Workspace</p>
                 <h1>{{ $title }}</h1>
                 @if (session('adxon_user'))
                     <p class="admin-userline">Logged in as {{ session('adxon_user.name') }} / {{ session('adxon_user.role') }}</p>
                 @endif
             </div>
             <div class="admin-actions">
+                <button class="icon-button sidebar-mobile" type="button" data-workspace-menu aria-label="Toggle navigation" aria-expanded="false"><i data-lucide="menu"></i></button>
                 @if ($canAccess('Global Search'))
                     <form class="global-search" method="get" action="{{ route('admin.search') }}">
-                        <input name="q" value="{{ $query ?? '' }}" placeholder="Search leads, invoices, users">
+                        <input name="q" value="{{ $query ?? '' }}" placeholder="Search workspace" aria-label="Search workspace">
                     </form>
                 @endif
-                <button class="theme-toggle" type="button" data-theme-toggle>Mode</button>
+                <button class="theme-toggle icon-button" type="button" data-theme-toggle title="Toggle color theme" aria-label="Toggle color theme"><i data-lucide="sun-moon"></i></button>
                 <a class="button button-ghost" href="{{ route('home') }}" target="_blank">View Site</a>
             </div>
         </div>
 
-        @if ($errors->has('access'))
-            <p class="admin-alert">{{ $errors->first('access') }}</p>
+        @if ($errors->any())
+            <div class="admin-alert" role="alert">@foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>
         @endif
 
         @if (session('status'))
@@ -135,118 +86,11 @@
         @endif
 
         @if ($active === 'dashboard')
-            <section class="filter-pills date-filters">
-                @foreach (['Today', 'Yesterday', 'This Week', 'Last Week', 'This Month', 'Last Month', 'Current Year', 'Custom Range'] as $filter)
-                    <span>{{ $filter }}</span>
-                @endforeach
-            </section>
-            @if ($canAccess('Analytics'))
-                <section class="admin-metrics">
-                    <article><span>{{ $analytics['total_visitors'] }}</span><p>Total Visitors</p></article>
-                    <article><span>{{ $analytics['unique_visitors'] }}</span><p>Unique Visitors</p></article>
-                    <article><span>{{ $analytics['returning_visitors'] }}</span><p>Returning</p></article>
-                    <article><span>{{ $analytics['active_users'] }}</span><p>Active Users</p></article>
-                    <article><span>Rs {{ number_format($adminStats['revenue']) }}</span><p>Revenue</p></article>
-                    <article><span>{{ $analytics['bounce_rate'] }}</span><p>Bounce Rate</p></article>
-                </section>
-                <section class="admin-grid two-col">
-                    <article class="admin-panel">
-                        <h2>Website Traffic</h2>
-                        <div class="spark-chart">
-                            @foreach ($analytics['traffic_trend'] as $value)
-                                <i style="height: {{ max(8, round(($value / $maxTraffic) * 100)) }}%"></i>
-                            @endforeach
-                        </div>
-                    </article>
-                    <article class="admin-panel">
-                        <h2>Visitor Growth</h2>
-                        <div class="spark-chart growth">
-                            @foreach ($analytics['visitor_growth'] as $value)
-                                <i style="height: {{ max(8, round(($value / $maxGrowth) * 100)) }}%"></i>
-                            @endforeach
-                        </div>
-                    </article>
-                </section>
-                <section class="admin-grid three-col">
-                    <article class="admin-panel">
-                        <h2>Traffic Sources</h2>
-                        <div class="source-list">
-                            @foreach ($analytics['sources'] as $source => $percent)
-                                <div><span>{{ $source }}</span><strong>{{ $percent }}%</strong><i style="width: {{ $percent }}%"></i></div>
-                            @endforeach
-                        </div>
-                    </article>
-                    <article class="admin-panel">
-                        <h2>Visitor Analytics</h2>
-                        <div class="detail-list">
-                            <p><strong>Average Session:</strong> {{ $analytics['avg_session'] }}</p>
-                            <p><strong>Average Page Time:</strong> {{ $analytics['avg_page_time'] }}</p>
-                            <p><strong>Bounce Rate:</strong> {{ $analytics['bounce_rate'] }}</p>
-                            <p><strong>Top Pages:</strong> {{ implode(', ', $analytics['top_pages']) }}</p>
-                        </div>
-                    </article>
-                    <article class="admin-panel">
-                        <h2>Device Analytics</h2>
-                        <div class="donut-card" style="--a: {{ $analytics['devices']['Mobile'] }}%; --b: {{ $analytics['devices']['Desktop'] }}%">
-                            <span>{{ $analytics['devices']['Mobile'] }}%</span>
-                        </div>
-                        <div class="mini-legend">
-                            @foreach ($analytics['devices'] as $device => $percent)
-                                <span>{{ $device }} {{ $percent }}%</span>
-                            @endforeach
-                        </div>
-                    </article>
-                </section>
-                <section class="admin-grid three-col">
-                    <article class="admin-panel">
-                        <h2>Live Visitor Map</h2>
-                        <div class="location-grid">
-                            @foreach ($analytics['locations'] as $location => $percent)
-                                <span>{{ $location }} <strong>{{ $percent }}%</strong></span>
-                            @endforeach
-                        </div>
-                    </article>
-                    <article class="admin-panel">
-                        <h2>Lead Conversion Funnel</h2>
-                        <div class="funnel-list">
-                            @foreach ($analytics['funnel'] as $step => $value)
-                                <div><span>{{ $step }}</span><strong>{{ $value }}</strong><i style="width: {{ max(8, round(($value / $maxFunnel) * 100)) }}%"></i></div>
-                            @endforeach
-                        </div>
-                    </article>
-                    <article class="admin-panel">
-                        <h2>Notifications</h2>
-                        <div class="admin-table">
-                            @foreach ($adminData['notifications'] as $notification)
-                                <div><strong>{{ $notification['message'] }}</strong><span>{{ $notification['date'] }}</span></div>
-                            @endforeach
-                        </div>
-                    </article>
-                </section>
-                <section class="admin-grid two-col">
-                    <article class="admin-panel">
-                        <h2>Revenue Overview</h2>
-                        <div class="spark-chart revenue">
-                            @foreach ($analytics['revenue_trend'] as $value)
-                                <i style="height: {{ max(8, round(($value / $maxRevenueTrend) * 100)) }}%"></i>
-                            @endforeach
-                        </div>
-                    </article>
-                    <article class="admin-panel">
-                        <h2>Browser Analytics</h2>
-                        <div class="source-list">
-                            @foreach ($analytics['browsers'] as $browser => $percent)
-                                <div><span>{{ $browser }}</span><strong>{{ $percent }}%</strong><i style="width: {{ $percent }}%"></i></div>
-                            @endforeach
-                        </div>
-                    </article>
-                </section>
-            @else
-                <section class="admin-panel">
-                    <h2>Dashboard Access Enabled</h2>
-                    <p>Analytics widgets are hidden for this role.</p>
-                </section>
-            @endif
+            @include('admin.overview')
+        @endif
+
+        @if (in_array($active, ['campaigns', 'clients', 'analytics', 'seo', 'social', 'ads', 'messages', 'preferences'], true))
+            @include('admin.workspace')
         @endif
 
         @if ($active === 'leads')
@@ -268,6 +112,8 @@
                         <label>Service <input name="service"></label>
                         <label>Package <input name="package"></label>
                         <label>Source <input name="source" value="Website"></label>
+                        @if($canAccess('Campaigns'))<label>Campaign<select name="campaign_id"><option value="">Unassigned</option>@foreach($adminData['campaigns'] as $campaign)<option value="{{ $campaign['id'] }}" @selected(old('campaign_id') === $campaign['id'])>{{ $campaign['name'] }}</option>@endforeach</select></label>@endif
+                        <label>Lead score<input name="score" type="number" min="0" max="100" value="{{ old('score') }}"></label>
                         <label>Stage
                             <select name="stage">
                                 @foreach ($adminData['lead_stages'] as $stage)
@@ -298,49 +144,7 @@
         @endif
 
         @if ($active === 'lead_list')
-            <section class="admin-panel">
-                <h2>Lead List</h2>
-                <div class="responsive-table">
-                    <table>
-                        <thead><tr><th>Date</th><th>Lead</th><th>Contact</th><th>Service</th><th>Stage</th><th>Assigned</th><th>Reminder</th><th>Details</th></tr></thead>
-                        <tbody>
-                            @foreach ($adminData['leads'] as $lead)
-                                <tr>
-                                    <td>{{ $lead['date'] }}</td>
-                                    <td><strong>{{ $lead['name'] }}</strong><small>{{ $lead['business'] }} - {{ $lead['location'] }}</small></td>
-                                    <td>{{ $lead['email'] }}<small>{{ $lead['phone'] }}</small></td>
-                                    <td>{{ $lead['service'] }}<small>{{ $lead['package'] }} / {{ $lead['source'] }}</small></td>
-                                    <td>
-                                        @if ($canAccess('Lead Edit'))
-                                            <form method="post" action="{{ route('admin.leads.stage', $lead['id']) }}">
-                                                @csrf
-                                                @method('patch')
-                                                <select name="stage" onchange="this.form.submit()">
-                                                    @foreach ($adminData['lead_stages'] as $stage)
-                                                        <option {{ $lead['stage'] === $stage ? 'selected' : '' }}>{{ $stage }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </form>
-                                        @else
-                                            {{ $lead['stage'] }}
-                                        @endif
-                                    </td>
-                                    <td>{{ $lead['assigned_to'] }}</td>
-                                    <td>{{ $lead['reminder'] }}</td>
-                                    <td>
-                                        <details class="row-details">
-                                            <summary>View</summary>
-                                            <p><strong>Notes:</strong> {{ $lead['notes'] }}</p>
-                                            <p><strong>Activity:</strong> {{ implode(', ', $lead['activity']) }}</p>
-                                            <p><strong>Actions:</strong> Email / WhatsApp / Upload / Follow-up</p>
-                                        </details>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+            @include('admin.lead-list')
         @endif
 
         @if ($active === 'invoices')
@@ -372,8 +176,8 @@
                     </article>
                     <article class="admin-panel">
                         <h2>Reminder Generator</h2>
-                        <p>Generate email or WhatsApp reminders with today's date and a custom note before sending.</p>
-                        <button class="button button-ghost" type="button">Draft Reminder</button>
+                        <p>Review outstanding balances and compose a reminder from an invoice.</p>
+                        <a class="button button-ghost" href="{{ route('admin.invoices.list') }}">Review invoices <i data-lucide="arrow-right"></i></a>
                     </article>
                 </section>
             @endif
@@ -425,7 +229,7 @@
                                     <td>Rs {{ number_format($invoice['total']) }}</td>
                                     <td>Rs {{ number_format($invoice['paid']) }}</td>
                                     <td>Rs {{ number_format($invoice['balance']) }}</td>
-                                    <td><span class="table-actions">Preview PDF Email WhatsApp Print Duplicate</span></td>
+                                    <td><div class="table-actions"><a class="icon-button" href="{{ route('admin.invoices.preview', $invoice['id']) }}" title="Preview and print invoice" aria-label="Preview invoice {{ $invoice['invoice_no'] }}"><i data-lucide="file-text"></i></a><a class="icon-button" href="mailto:{{ $invoice['email'] }}?subject={{ rawurlencode('Invoice '.$invoice['invoice_no']) }}&amp;body={{ rawurlencode('Hello '.$invoice['customer'].', your outstanding balance for '.$invoice['invoice_no'].' is Rs '.number_format($invoice['balance'], 2).'.') }}" title="Compose invoice email" aria-label="Compose invoice email"><i data-lucide="mail"></i></a></div></td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -480,24 +284,17 @@
         @endif
 
         @if ($active === 'reports')
-            <section class="admin-grid two-col">
-                <article class="admin-panel">
-                    <h2>Available Reports</h2>
-                    <div class="report-links">
-                        <a class="button button-ghost" href="{{ route('admin.reports.export', 'analytics') }}">Website Analytics CSV</a>
-                        <a class="button button-ghost" href="{{ route('admin.reports.export', 'leads') }}">Lead Report CSV</a>
-                        <a class="button button-ghost" href="{{ route('admin.reports.export', 'sales') }}">Sales Report CSV</a>
-                    </div>
-                </article>
-                <article class="admin-panel">
-                    <h2>Report Filters</h2>
-                    <div class="filter-pills">
-                        @foreach (['Today', 'Yesterday', 'This Week', 'Last Week', 'This Month', 'Last Month', 'Current Year', 'Custom Period'] as $filter)
-                            <span>{{ $filter }}</span>
-                        @endforeach
-                    </div>
-                </article>
-            </section>
+            <div class="workspace-heading"><div><h2>Reports that tell the whole story</h2><p>Review recorded campaign, lead, and revenue performance.</p></div></div>
+            <form method="get" action="{{ route('admin.reports.performance') }}" class="toolbar">
+                <label>From date<input type="date" name="from"></label>
+                <label>To date<input type="date" name="to"></label>
+                <button class="button button-primary" type="submit"><i data-lucide="file-chart-column"></i>Generate report</button>
+            </form>
+            <section class="data-section"><div class="panel-title"><h2>Quick exports</h2><i data-lucide="download"></i></div><div class="report-links">
+                <a class="button button-ghost" href="{{ route('admin.reports.export', 'analytics') }}"><i data-lucide="download"></i>Sample website analytics CSV</a>
+                <a class="button button-ghost" href="{{ route('admin.reports.export', 'leads') }}"><i data-lucide="download"></i>Lead report CSV</a>
+                <a class="button button-ghost" href="{{ route('admin.reports.export', 'sales') }}"><i data-lucide="download"></i>Sales report CSV</a>
+            </div></section>
         @endif
 
         @if ($active === 'audit_logs')
@@ -540,7 +337,7 @@
                             @foreach ($meta['fields'] as $field)
                                 @if ($field === 'highlight')
                                     <label class="checkbox-label"><input type="checkbox" name="rows[{{ $index }}][highlight]" {{ ! empty($row['highlight']) ? 'checked' : '' }}> Highlight package</label>
-                                @elseif (in_array($field, ['summary', 'features', 'quote', 'excerpt', 'answer', 'note'], true))
+                                @elseif (in_array($field, ['summary', 'features', 'quote', 'excerpt', 'answer', 'note', 'body', 'benefits', 'challenge', 'strategy', 'context'], true))
                                     <label>{{ ucwords(str_replace('_', ' ', $field)) }}<textarea name="rows[{{ $index }}][{{ $field }}]" rows="4">{{ $row[$field] ?? '' }}</textarea></label>
                                 @else
                                     <label>{{ ucwords(str_replace('_', ' ', $field)) }}<input name="rows[{{ $index }}][{{ $field }}]" value="{{ $row[$field] ?? '' }}"></label>
@@ -555,7 +352,7 @@
                         @foreach ($meta['fields'] as $field)
                             @if ($field === 'highlight')
                                 <label class="checkbox-label"><input type="checkbox" data-name="highlight"> Highlight package</label>
-                            @elseif (in_array($field, ['summary', 'features', 'quote', 'excerpt', 'answer', 'note'], true))
+                            @elseif (in_array($field, ['summary', 'features', 'quote', 'excerpt', 'answer', 'note', 'body', 'benefits', 'challenge', 'strategy', 'context'], true))
                                 <label>{{ ucwords(str_replace('_', ' ', $field)) }}<textarea data-name="{{ $field }}" rows="4"></textarea></label>
                             @else
                                 <label>{{ ucwords(str_replace('_', ' ', $field)) }}<input data-name="{{ $field }}"></label>
@@ -582,7 +379,7 @@
                                     <p>{{ $enquiry['message'] }}</p>
                                     <small>{{ \Carbon\Carbon::parse($enquiry['created_at'])->format('d M Y, h:i A') }}</small>
                                 </div>
-                                <form method="post" action="{{ route('admin.enquiries.delete', $index) }}">
+                                <form method="post" action="{{ route('admin.enquiries.delete', $index) }}" data-confirm="Delete this enquiry? This cannot be undone.">
                                     @csrf
                                     @method('delete')
                                     <button class="button button-ghost" type="submit">Delete</button>
@@ -614,6 +411,16 @@
                     <label>Meta Title <input name="seo_title" value="{{ $content['seo']['title'] }}"></label>
                     <label>Description <textarea name="seo_description" rows="4">{{ $content['seo']['description'] }}</textarea></label>
                     <label>Keywords <textarea name="seo_keywords" rows="3">{{ $content['seo']['keywords'] }}</textarea></label>
+                </section>
+                <section>
+                    <h2>Website typography</h2>
+                    <label>Font family<select name="font_family">@foreach(['default' => 'Default (System Sans)', 'arial' => 'Arial', 'verdana' => 'Verdana', 'georgia' => 'Georgia', 'times' => 'Times New Roman', 'courier' => 'Courier New'] as $value => $label)<option value="{{ $value }}" @selected(old('font_family', $content['settings']['font_family']) === $value)>{{ $label }}</option>@endforeach</select></label>
+                    <label>Base font size (px)<input name="font_size" type="number" min="12" max="24" step="1" required value="{{ old('font_size', $content['settings']['font_size']) }}"></label>
+                    <label>Font style<select name="font_style">@foreach(['normal' => 'Normal', 'italic' => 'Italic'] as $value => $label)<option value="{{ $value }}" @selected(old('font_style', $content['settings']['font_style']) === $value)>{{ $label }}</option>@endforeach</select></label>
+                </section>
+                <section>
+                    <h2>Social & policy links</h2>
+                    @foreach(['instagram_url' => 'Instagram', 'linkedin_url' => 'LinkedIn', 'facebook_url' => 'Facebook', 'privacy_url' => 'Privacy policy URL', 'terms_url' => 'Terms & conditions URL'] as $field => $label)<label>{{ $label }}<input type="url" name="{{ $field }}" value="{{ old($field, $content['settings'][$field]) }}" placeholder="https://"></label>@endforeach
                 </section>
                 <button class="button button-primary" type="submit">Save Settings</button>
             </form>

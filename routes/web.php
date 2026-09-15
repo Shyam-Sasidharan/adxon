@@ -2,12 +2,25 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PlatformController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/enquiry', [HomeController::class, 'storeEnquiry'])->name('enquiry.store');
+Route::get('/insights/{kind}/{index}', [HomeController::class, 'detail'])->whereIn('kind', ['portfolio', 'blogs'])->whereNumber('index')->name('site.detail');
 
 Route::prefix('admin')->group(function () {
+    foreach (['campaigns', 'clients', 'analytics', 'seo', 'social', 'ads', 'messages', 'preferences'] as $module) {
+        Route::get('/workspace/'.$module, [PlatformController::class, 'index'])->defaults('module', $module)->name('admin.platform.'.$module);
+    }
+    Route::post('/workspace/campaigns', [PlatformController::class, 'saveCampaign'])->name('admin.campaigns.save');
+    Route::patch('/workspace/campaigns/{campaign}', [PlatformController::class, 'campaignStatus'])->name('admin.campaigns.status');
+    Route::post('/workspace/clients', [PlatformController::class, 'saveClient'])->name('admin.clients.save');
+    Route::post('/workspace/metrics/{channel}', [PlatformController::class, 'saveMetrics'])->name('admin.metrics.save');
+    Route::post('/workspace/preferences', [PlatformController::class, 'savePreferences'])->name('admin.preferences.save');
+    Route::post('/workspace/leads/bulk', [PlatformController::class, 'bulkLeads'])->name('admin.leads.bulk');
+    Route::get('/reports/performance', [PlatformController::class, 'reportPage'])->name('admin.reports.performance');
+    Route::get('/workspace/invoices/{invoice}/preview', [PlatformController::class, 'invoicePreview'])->name('admin.invoices.preview');
     Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/login', [AdminController::class, 'loginForm'])->name('admin.login');
     Route::post('/login', [AdminController::class, 'login'])->name('admin.login.post');

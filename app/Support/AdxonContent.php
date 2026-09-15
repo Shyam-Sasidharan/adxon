@@ -4,9 +4,24 @@ namespace App\Support;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
+use Illuminate\Validation\Rule;
 
 class AdxonContent
 {
+    public const FONT_FAMILIES = [
+        'default' => 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        'arial' => 'Arial, Helvetica, sans-serif',
+        'verdana' => 'Verdana, Geneva, sans-serif',
+        'georgia' => 'Georgia, "Times New Roman", serif',
+        'times' => '"Times New Roman", Times, serif',
+        'courier' => '"Courier New", Courier, monospace',
+    ];
+
+    public static function imageUrl(?string $url): ?string
+    {
+        return $url && filter_var($url, FILTER_VALIDATE_URL) && in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true) ? $url : null;
+    }
+
     public function all(): array
     {
         $this->ensureStorage();
@@ -22,6 +37,18 @@ class AdxonContent
 
         foreach (['settings', 'seo', 'hero'] as $group) {
             $merged[$group] = array_replace($defaults[$group], $content[$group] ?? []);
+        }
+
+        if (array_column($merged['process'], 'step') === ['Discover', 'Design', 'Deploy', 'Optimize']) {
+            $legacy = $merged['process'];
+            $merged['process'] = [
+                $legacy[0],
+                ['step' => 'Analyze', 'summary' => 'Review your audience, competitors, and existing performance to find the right opportunities.'],
+                ['step' => 'Strategize', 'summary' => $legacy[1]['summary']],
+                ['step' => 'Execute', 'summary' => $legacy[2]['summary']],
+                $legacy[3],
+                ['step' => 'Scale', 'summary' => 'Build on what works and expand your strongest campaigns with a clear plan.'],
+            ];
         }
 
         return $merged;
@@ -43,15 +70,19 @@ class AdxonContent
     public function collections(): array
     {
         return [
-            'services' => ['title' => 'Services', 'fields' => ['icon', 'title', 'summary']],
+            'services' => ['title' => 'Services', 'fields' => ['icon', 'title', 'summary', 'benefits']],
             'packages' => ['title' => 'Packages', 'fields' => ['name', 'price', 'period', 'features', 'highlight']],
             'package_content' => ['title' => 'Package - Content Production', 'fields' => ['name', 'price', 'period', 'features', 'note', 'highlight']],
             'package_social' => ['title' => 'Package - Social Media', 'fields' => ['name', 'price', 'period', 'features', 'note', 'highlight']],
             'package_ads' => ['title' => 'Package - Paid Ads', 'fields' => ['name', 'price', 'period', 'features', 'note', 'highlight']],
             'package_combo' => ['title' => 'Package - Combinations', 'fields' => ['name', 'price', 'period', 'features', 'note', 'highlight']],
-            'portfolio' => ['title' => 'Portfolio', 'fields' => ['title', 'category', 'summary', 'metric']],
-            'testimonials' => ['title' => 'Testimonials', 'fields' => ['name', 'role', 'quote']],
-            'blogs' => ['title' => 'Blogs', 'fields' => ['title', 'category', 'excerpt']],
+            'portfolio' => ['title' => 'Case Studies', 'fields' => ['title', 'category', 'summary', 'metric', 'image_url', 'client', 'challenge', 'strategy', 'services', 'growth']],
+            'testimonials' => ['title' => 'Testimonials', 'fields' => ['name', 'role', 'quote', 'photo_url', 'rating']],
+            'blogs' => ['title' => 'Resources', 'fields' => ['title', 'category', 'excerpt', 'body', 'image_url']],
+            'client_logos' => ['title' => 'Client Logos', 'fields' => ['name', 'image_url']],
+            'results' => ['title' => 'Performance Results', 'fields' => ['label', 'value', 'suffix', 'context']],
+            'stats' => ['title' => 'Brand Statistics', 'fields' => ['label', 'value', 'suffix']],
+            'process' => ['title' => 'Our Process', 'fields' => ['step', 'summary']],
             'faqs' => ['title' => 'FAQ', 'fields' => ['question', 'answer']],
         ];
     }
@@ -77,6 +108,7 @@ class AdxonContent
             foreach ($collections[$key]['fields'] as $field) {
                 if ($field === 'highlight') {
                     $clean[$field] = Arr::has($row, $field);
+
                     continue;
                 }
 
@@ -124,18 +156,40 @@ class AdxonContent
 
     public function saveSettings(array $payload): void
     {
+        validator($payload, [
+            'font_family' => ['sometimes', 'required', Rule::in(array_keys(self::FONT_FAMILIES))],
+            'font_size' => ['sometimes', 'required', 'integer', 'between:12,24'],
+            'font_style' => ['sometimes', 'required', Rule::in(['normal', 'italic'])],
+            'instagram_url' => ['nullable', 'url:http,https'],
+            'linkedin_url' => ['nullable', 'url:http,https'],
+            'facebook_url' => ['nullable', 'url:http,https'],
+            'privacy_url' => ['nullable', 'url:http,https'],
+            'terms_url' => ['nullable', 'url:http,https'],
+        ])->validate();
         $content = $this->all();
 
+        foreach (['font_family', 'font_size', 'font_style', 'instagram_url', 'linkedin_url', 'facebook_url', 'privacy_url', 'terms_url'] as $field) {
+            if (array_key_exists($field, $payload)) {
+                $content['settings'][$field] = $payload[$field] ?? '';
+            }
+        }
+
         foreach (['brand', 'tagline', 'phone', 'email', 'location', 'cta'] as $field) {
-            $content['settings'][$field] = trim((string) ($payload[$field] ?? ''));
+            if (array_key_exists($field, $payload)) {
+                $content['settings'][$field] = trim((string) ($payload[$field] ?? ''));
+            }
         }
 
         foreach (['title', 'description', 'keywords'] as $field) {
-            $content['seo'][$field] = trim((string) ($payload['seo_'.$field] ?? ''));
+            if (array_key_exists('seo_'.$field, $payload)) {
+                $content['seo'][$field] = trim((string) ($payload['seo_'.$field] ?? ''));
+            }
         }
 
         foreach (['eyebrow', 'headline', 'subline', 'primary_button', 'secondary_button'] as $field) {
-            $content['hero'][$field] = trim((string) ($payload['hero_'.$field] ?? ''));
+            if (array_key_exists('hero_'.$field, $payload)) {
+                $content['hero'][$field] = trim((string) ($payload['hero_'.$field] ?? ''));
+            }
         }
 
         $this->save($content);
@@ -170,6 +224,14 @@ class AdxonContent
                 'email' => 'hello@adxonagency.com',
                 'location' => 'Palakkad, Kerala, India',
                 'cta' => 'Get a Quote',
+                'font_family' => 'default',
+                'font_size' => 16,
+                'font_style' => 'normal',
+                'instagram_url' => '',
+                'linkedin_url' => '',
+                'facebook_url' => '',
+                'privacy_url' => '',
+                'terms_url' => '',
             ],
             'seo' => [
                 'title' => 'Adxon - Premium Digital Marketing & Creative Agency',
@@ -247,6 +309,8 @@ class AdxonContent
                 ['title' => 'Landing Pages That Make Paid Media Cheaper', 'category' => 'CRO', 'excerpt' => 'The structural decisions that improve trust, speed, and conversion intent.'],
             ],
             'enquiries' => [],
+            'client_logos' => [],
+            'results' => [],
         ];
     }
 }

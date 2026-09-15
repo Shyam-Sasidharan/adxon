@@ -34,4 +34,13 @@ class HomeController extends Controller
 
         return redirect()->route('home', ['sent' => 1])->withFragment('contact');
     }
+
+    public function detail(AdxonContent $content, string $kind, int $index): View
+    {
+        abort_unless(in_array($kind, ['portfolio', 'blogs'], true), 404);
+        $data = $content->all();
+        abort_unless(isset($data[$kind][$index]), 404);
+
+        return view('marketing.detail', ['content' => $data, 'item' => $data[$kind][$index], 'kind' => $kind]);
+    }
 }

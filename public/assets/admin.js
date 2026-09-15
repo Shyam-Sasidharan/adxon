@@ -47,6 +47,8 @@ if (adminBody && themeToggle) {
     const savedMode = localStorage.getItem('adxon-admin-theme');
     if (savedMode === 'light') {
         adminBody.classList.add('light-mode');
+    } else if (savedMode === 'dark') {
+        adminBody.classList.remove('light-mode');
     }
     refreshThemeLogos();
 

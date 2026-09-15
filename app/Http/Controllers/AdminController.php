@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\AdxonContent;
 use App\Support\AdxonAdminData;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use App\Support\AdxonContent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Throwable;
 
@@ -38,7 +39,7 @@ class AdminController extends Controller
             $request->session()->regenerate();
             $request->session()->put('adxon_admin', true);
             $request->session()->put('adxon_user', [
-                'name' => 'Admin',
+                'name' => $adminData->preferences($user)['display_name'] ?: 'Admin',
                 'email' => $user,
                 'role' => 'Owner',
                 'permissions' => ['*'],
@@ -53,7 +54,7 @@ class AdminController extends Controller
             $request->session()->regenerate();
             $request->session()->put('adxon_admin', true);
             $request->session()->put('adxon_user', [
-                'name' => $createdUser['name'] ?? 'User',
+                'name' => $adminData->preferences((string) $createdUser['email'])['display_name'] ?: ($createdUser['name'] ?? 'User'),
                 'email' => $createdUser['email'] ?? '',
                 'role' => $createdUser['role'] ?? '',
                 'permissions' => $createdUser['permissions'] ?? [],
@@ -186,6 +187,9 @@ class AdminController extends Controller
             'name' => ['required', 'string', 'max:160'],
             'email' => ['nullable', 'email', 'max:180'],
             'phone' => ['nullable', 'string', 'max:80'],
+            'campaign_id' => ['nullable', Rule::in(array_column($adminData->all()['campaigns'], 'id'))],
+            'score' => ['nullable', 'integer', 'between:0,100'],
+            'stage' => ['sometimes', 'required', Rule::in($adminData->all()['lead_stages'])],
         ]);
 
         $adminData->addLead($request->all());
@@ -199,7 +203,8 @@ class AdminController extends Controller
             return $redirect;
         }
 
-        $adminData->updateLeadStage($lead, (string) $request->input('stage', 'New Lead'));
+        $request->validate(['stage' => ['required', Rule::in($adminData->all()['lead_stages'])]]);
+        $adminData->updateLeadStage($lead, (string) $request->input('stage'));
 
         return redirect()->route('admin.leads')->with('status', 'Lead stage updated.');
     }
@@ -327,7 +332,7 @@ class AdminController extends Controller
         ]);
     }
 
-    private function view(string $active, AdxonContent $content, AdxonAdminData $adminData, array $extra = []): View
+    protected function view(string $active, AdxonContent $content, AdxonAdminData $adminData, array $extra = []): View
     {
         $request = request();
 
@@ -336,6 +341,7 @@ class AdminController extends Controller
             'content' => $content->withAdminAliases(),
             'collections' => $content->collections(),
             'adminData' => $adminData->all(),
+            'preferences' => $adminData->preferences((string) $request->session()->get('adxon_user.email', '')),
             'canAccess' => fn (string $permission): bool => $this->can($request, $permission),
             'adminStats' => [
                 'revenue' => $adminData->invoiceRevenue(),
@@ -349,7 +355,7 @@ class AdminController extends Controller
         return $request->session()->get('adxon_admin') === true;
     }
 
-    private function requirePermission(Request $request, string $permission): ?RedirectResponse
+    protected function requirePermission(Request $request, string $permission): ?RedirectResponse
     {
         if (! $this->isLoggedIn($request)) {
             return redirect()->route('admin.login');
@@ -400,6 +406,8 @@ class AdminController extends Controller
     private function permissionAliases(string $permission): array
     {
         return [
+            'Campaigns' => ['Campaigns'],
+            'Clients' => ['Clients'],
             'Dashboard' => ['Dashboard'],
             'Analytics' => ['Analytics', 'Website Analytics'],
             'CRM' => ['CRM', 'Lead Center'],
@@ -420,6 +428,9 @@ class AdminController extends Controller
     private function moduleRoutes(): array
     {
         return [
+            'Campaigns' => 'admin.platform.campaigns',
+            'Clients' => 'admin.platform.clients',
+            'Analytics' => 'admin.platform.analytics',
             'Dashboard' => 'admin.dashboard',
             'Lead View' => 'admin.leads',
             'Invoices' => 'admin.invoices',

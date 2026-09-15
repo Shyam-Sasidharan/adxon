@@ -14,7 +14,15 @@ class AdxonAdminData
 
         $data = json_decode((string) File::get($this->path()), true);
 
-        return is_array($data) ? array_replace_recursive($this->defaults(), $data) : $this->defaults();
+        if (! is_array($data)) {
+            return $this->defaults();
+        }
+
+        $merged = array_replace($this->defaults(), $data);
+        $merged['analytics'] = array_replace($this->defaults()['analytics'], $data['analytics'] ?? []);
+        $merged['lead_stages'] = array_values(array_unique(array_merge($merged['lead_stages'], ['Contacted', 'Proposal', 'Won'])));
+
+        return $merged;
     }
 
     public function save(array $data): void
@@ -37,6 +45,8 @@ class AdxonAdminData
             'service' => trim((string) ($payload['service'] ?? '')),
             'package' => trim((string) ($payload['package'] ?? '')),
             'source' => trim((string) ($payload['source'] ?? 'Website')),
+            'campaign_id' => trim((string) ($payload['campaign_id'] ?? '')),
+            'score' => isset($payload['score']) ? (int) $payload['score'] : null,
             'stage' => trim((string) ($payload['stage'] ?? 'New Lead')),
             'assigned_to' => trim((string) ($payload['assigned_to'] ?? '')),
             'notes' => trim((string) ($payload['notes'] ?? '')),
@@ -44,6 +54,7 @@ class AdxonAdminData
             'activity' => ['Lead created on '.now()->format('d M Y h:i A')],
         ];
         $data['audit_logs'][] = $this->log('Lead created', $payload['name'] ?? 'New lead');
+        $data['notifications'][] = ['date' => now()->format('d M Y h:i A'), 'message' => 'New lead: '.($payload['name'] ?? 'New lead')];
         $this->save($data);
     }
 
@@ -86,6 +97,7 @@ class AdxonAdminData
             'payment_history' => $paid > 0 ? [['date' => now()->toDateString(), 'amount' => $paid, 'method' => 'Manual', 'notes' => 'Initial payment']] : [],
         ];
         $data['audit_logs'][] = $this->log('Invoice created', $payload['customer'] ?? 'Customer');
+        $data['notifications'][] = ['date' => now()->format('d M Y h:i A'), 'message' => 'Invoice created for '.($payload['customer'] ?? 'Customer')];
         $this->save($data);
     }
 
@@ -200,6 +212,18 @@ class AdxonAdminData
         return array_sum(array_map(fn ($invoice) => (float) ($invoice['balance'] ?? 0), $this->all()['invoices']));
     }
 
+    public function preferences(string $email): array
+    {
+        return array_replace(['display_name' => '', 'notifications' => true], $this->all()['preferences'][hash('sha256', strtolower($email))] ?? []);
+    }
+
+    public function savePreferences(string $email, array $payload): void
+    {
+        $data = $this->all();
+        $data['preferences'][hash('sha256', strtolower($email))] = $payload;
+        $this->save($data);
+    }
+
     private function countBy(array $rows, string $key, string $value): int
     {
         return count(array_filter($rows, fn ($row) => ($row[$key] ?? '') === $value));
@@ -230,6 +254,10 @@ class AdxonAdminData
     private function defaults(): array
     {
         return [
+            'campaigns' => [],
+            'clients' => [],
+            'marketing_metrics' => [],
+            'preferences' => [],
             'analytics' => [
                 'total_visitors' => 12840,
                 'unique_visitors' => 9240,
