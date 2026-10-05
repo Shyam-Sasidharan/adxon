@@ -10,6 +10,14 @@ Route::post('/enquiry', [HomeController::class, 'storeEnquiry'])->name('enquiry.
 Route::get('/insights/{kind}/{index}', [HomeController::class, 'detail'])->whereIn('kind', ['portfolio', 'blogs'])->whereNumber('index')->name('site.detail');
 
 Route::prefix('admin')->group(function () {
+    Route::get('/account/integrations', [\App\Http\Controllers\IntegrationController::class, 'index'])->name('admin.integrations');
+    Route::put('/account/integrations/{type}', [\App\Http\Controllers\IntegrationController::class, 'update'])->name('admin.integrations.update');
+    Route::patch('/account/integrations/{type}/status', [\App\Http\Controllers\IntegrationController::class, 'status'])->name('admin.integrations.status');
+    Route::delete('/account/integrations/{type}', [\App\Http\Controllers\IntegrationController::class, 'destroy'])->name('admin.integrations.destroy');
+    Route::get('/account/integrations', [\App\Http\Controllers\IntegrationController::class, 'index'])->name('admin.integrations');
+    Route::put('/account/integrations/{type}', [\App\Http\Controllers\IntegrationController::class, 'update'])->name('admin.integrations.update');
+    Route::patch('/account/integrations/{type}/status', [\App\Http\Controllers\IntegrationController::class, 'status'])->name('admin.integrations.status');
+    Route::delete('/account/integrations/{type}', [\App\Http\Controllers\IntegrationController::class, 'destroy'])->name('admin.integrations.destroy');
     foreach (['campaigns', 'clients', 'analytics', 'seo', 'social', 'ads', 'messages', 'preferences'] as $module) {
         Route::get('/workspace/'.$module, [PlatformController::class, 'index'])->defaults('module', $module)->name('admin.platform.'.$module);
     }

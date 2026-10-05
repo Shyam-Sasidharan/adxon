@@ -11,6 +11,7 @@
         'search' => 'Global Search',
         'enquiries' => 'Website Enquiries',
         'settings' => 'Settings & SEO',
+        'integrations' => 'Integrations & API',
         'no_access' => 'No Access',
     ];
     $title = $titles[$active] ?? ($collections[$active]['title'] ?? ucfirst($active));
@@ -85,6 +86,9 @@
             </section>
         @endif
 
+        @if ($active === 'integrations')
+            @include('admin.integrations')
+        @endif
         @if ($active === 'dashboard')
             @include('admin.overview')
         @endif

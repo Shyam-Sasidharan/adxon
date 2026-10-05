@@ -1083,6 +1083,11 @@
   border-color: var(--line);
 }
 
+.integration-section { margin-bottom: 32px; }
+.admin-body .tracking-code { font-family: Consolas, monospace; font-size: 12px; line-height: 1.6; }
+.integration-actions { margin-top: 18px; }
+.integration-section input[role="switch"] { accent-color: #237d5d; }
+
 @media print {
   .no-print, .admin-sidebar, .admin-topbar {
     display: none !important;
