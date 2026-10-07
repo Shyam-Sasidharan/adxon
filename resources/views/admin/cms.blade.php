@@ -431,7 +431,21 @@
                     <label>Banner image<input type="file" name="hero_image" accept="image/jpeg,image/png,image/webp"></label>
                     <p>JPG, PNG or WebP, up to 5 MB. Recommended: 1920 ? 1080. Save settings to apply.</p>
                     @error('hero_image')<p role="alert">{{ $message }}</p>@enderror
-                    <label><input type="checkbox" name="hero_reset_image" value="1"> Restore default banner</label>
+                    <label><input type="checkbox" name="hero_reset_image" value="1"> Restore default banner and clear extra slides</label>
+                    <h3>Automatic banner slider</h3>
+                    <label>Add slide images<input type="file" name="hero_slides[]" accept="image/jpeg,image/png,image/webp" multiple></label>
+                    <p>Choose multiple images. Up to 10 slides including the main banner, 5 MB per image.</p>
+                    @error('hero_slides')<p role="alert">{{ $message }}</p>@enderror
+                    @foreach ($errors->get('hero_slides.*') as $messages)
+                        @foreach ($messages as $message)<p role="alert">{{ $message }}</p>@endforeach
+                    @endforeach
+                    <label>Seconds between slides<input type="number" name="hero_slide_interval" min="3" max="30" required value="{{ old('hero_slide_interval', $content['hero']['slide_interval'] ?? 5) }}"></label>
+                    @foreach ($content['hero']['slides'] ?? [] as $index => $path)
+                        <div>
+                            <img src="{{ \App\Support\AdxonContent::bannerUrl(['hero' => ['image_path' => $path]]) }}" alt="Banner slide {{ $index + 2 }}" style="width:140px;height:80px;object-fit:cover;border-radius:8px">
+                            <label><input type="checkbox" name="hero_remove_slides[]" value="{{ $index }}"> Remove slide {{ $index + 2 }}</label>
+                        </div>
+                    @endforeach
                     @foreach (['eyebrow', 'headline', 'subline', 'primary_button', 'secondary_button'] as $field)
                         <label>{{ ucwords(str_replace('_', ' ', $field)) }}<input name="hero_{{ $field }}" value="{{ $content['hero'][$field] }}"></label>
                     @endforeach

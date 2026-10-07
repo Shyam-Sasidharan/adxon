@@ -39,6 +39,17 @@ class AdxonContent
         return asset(preg_match('/^uploads\/banners\/[a-f0-9-]+\.(jpg|jpeg|png|webp)$/', $path) ? $path : 'assets/studio.jpg');
     }
 
+    public static function bannerSlides(array $content): array
+    {
+        $slides = [self::bannerUrl($content)];
+        foreach ($content['hero']['slides'] ?? [] as $path) {
+            if (is_string($path) && preg_match('/^uploads\/banners\/[a-f0-9-]+\.(jpg|jpeg|png|webp)$/', $path)) {
+                $slides[] = asset($path);
+            }
+        }
+        return array_values(array_unique($slides));
+    }
+
     public static function projectImageUrl(?string $value): ?string
     {
         if ($value && preg_match('/^uploads\/projects\/[a-f0-9-]+\.(jpg|jpeg|png|webp)$/', $value)) {
@@ -205,6 +216,11 @@ class AdxonContent
     {
         validator($payload, [
             'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=1,min_height=1'],
+            'hero_slides' => ['sometimes', 'array', 'max:9'],
+            'hero_slides.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=1,min_height=1'],
+            'hero_remove_slides' => ['sometimes', 'array'],
+            'hero_remove_slides.*' => ['integer', 'min:0'],
+            'hero_slide_interval' => ['sometimes', 'required', 'integer', 'between:3,30'],
             'hero_reset_image' => ['sometimes', 'boolean'],
             'sections' => ['sometimes', 'array:'.implode(',', array_keys(self::SECTIONS))],
             'sections.*' => ['required', 'boolean'],
@@ -218,6 +234,17 @@ class AdxonContent
             'terms_url' => ['nullable', 'url:http,https'],
         ])->validate();
         $content = $this->all();
+
+        $slides = $content['hero']['slides'] ?? [];
+        foreach ($payload['hero_remove_slides'] ?? [] as $index) {
+            unset($slides[$index]);
+        }
+        if (! empty($payload['hero_reset_image']) && ! isset($payload['hero_image'])) {
+            $slides = [];
+        }
+        validator(['hero_slides' => array_merge(array_values($slides), $payload['hero_slides'] ?? [])], [
+            'hero_slides' => ['array', 'max:9'],
+        ])->validate();
 
         if (isset($payload['sections'])) {
             foreach ($payload['sections'] as $section => $enabled) {
@@ -258,6 +285,20 @@ class AdxonContent
             $content['hero']['image_path'] = 'uploads/banners/'.$filename;
         } elseif (! empty($payload['hero_reset_image'])) {
             $content['hero']['image_path'] = '';
+        }
+
+        foreach ($payload['hero_slides'] ?? [] as $image) {
+            $directory = public_path('uploads/banners');
+            File::ensureDirectoryExists($directory);
+            $filename = Str::uuid().'.'.$image->extension();
+            $image->move($directory, $filename);
+            $slides[] = 'uploads/banners/'.$filename;
+        }
+        if (isset($payload['hero_slides']) || isset($payload['hero_remove_slides']) || ! empty($payload['hero_reset_image'])) {
+            $content['hero']['slides'] = array_values($slides);
+        }
+        if (isset($payload['hero_slide_interval'])) {
+            $content['hero']['slide_interval'] = (int) $payload['hero_slide_interval'];
         }
 
         $this->save($content);
@@ -309,6 +350,8 @@ class AdxonContent
             ],
             'hero' => [
                 'image_path' => '',
+                'slides' => [],
+                'slide_interval' => 5,
                 'eyebrow' => 'Premium Digital Growth Studio',
                 'headline' => 'Build attention into revenue.',
                 'subline' => 'From powerful content to result-driven marketing, we help brands stand out and scale up.',

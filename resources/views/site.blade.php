@@ -14,8 +14,12 @@
     <main id="main">
         
 @if (\App\Support\AdxonContent::sectionActive($content, 'top'))
-        <section class="agency-hero" id="top">
-            <img class="hero-photo" src="{{ \App\Support\AdxonContent::bannerUrl($content) }}" alt="" fetchpriority="high">
+        <section class="agency-hero" id="top" data-banner-slider data-interval="{{ $hero['slide_interval'] ?? 5 }}">
+            @php($bannerSlides = \App\Support\AdxonContent::bannerSlides($content))
+            @foreach ($bannerSlides as $image)
+                <img class="hero-photo banner-slide {{ $loop->first ? 'is-active' : '' }}" src="{{ $image }}" alt="" @if($loop->first) fetchpriority="high" @else loading="lazy" @endif>
+            @endforeach
+
             <div class="shell hero-content">
                 <p class="eyebrow"><span class="status-dot"></span>{{ $hero['eyebrow'] }}</p>
                 <h1>{{ $settings['brand'] }}<span>{{ $hero['headline'] }}</span></h1>

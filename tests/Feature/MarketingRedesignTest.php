@@ -128,6 +128,51 @@ class MarketingRedesignTest extends TestCase
             ->assertSessionHasErrors('rows.0.image_upload');
     }
 
+    public function test_multiple_banner_slides_upload_render_remove_and_reset(): void
+    {
+        $data = (new AdxonContent)->all();
+        $data['hero']['slides'] = [];
+        $saved = null;
+        $paths = [];
+        $service = Mockery::mock(AdxonContent::class)->makePartial();
+        $service->shouldReceive('all')->andReturnUsing(function () use (&$saved, $data) { return $saved ?? $data; });
+        $service->shouldReceive('save')->times(4)->andReturnUsing(function (array $value) use (&$saved) { $saved = $value; });
+        $this->app->instance(AdxonContent::class, $service);
+        try {
+            $images = [];
+            for ($i = 0; $i < 2; $i++) {
+                $images[] = \Illuminate\Http\UploadedFile::fake()->createWithContent('slide.jpg', file_get_contents(public_path('assets/studio.jpg')));
+            }
+            $this->withSession(['adxon_admin' => true, 'adxon_user' => ['permissions' => ['CMS']]])
+                ->post(route('admin.settings.save'), ['hero_slides' => $images, 'hero_slide_interval' => '7'])
+                ->assertSessionHasNoErrors();
+            $paths = $saved['hero']['slides'];
+            $this->assertCount(2, $paths);
+            foreach ($paths as $path) { $this->assertFileExists(public_path($path)); }
+            $saved['sections']['top'] = true;
+            $response = $this->get('/')->assertOk()->assertSee('data-interval="7"', false)->assertDontSee('data-banner-pause', false)->assertDontSee('data-banner-dot', false);
+            foreach ($paths as $path) { $response->assertSee(asset($path), false); }
+            $this->post(route('admin.settings.save'), ['brand' => 'Updated brand'])->assertSessionHasNoErrors();
+            $this->assertSame($paths, $saved['hero']['slides']);
+            $this->post(route('admin.settings.save'), ['hero_remove_slides' => ['0']])->assertSessionHasNoErrors();
+            $this->assertSame([$paths[1]], $saved['hero']['slides']);
+            $this->post(route('admin.settings.save'), ['hero_reset_image' => '1'])->assertSessionHasNoErrors();
+            $this->assertSame([], $saved['hero']['slides']);
+        } finally {
+            foreach ($paths as $path) { \Illuminate\Support\Facades\File::delete(public_path($path)); }
+        }
+    }
+
+    public function test_banner_slider_rejects_invalid_uploads_and_interval(): void
+    {
+        $service = Mockery::mock(AdxonContent::class)->makePartial();
+        $service->shouldNotReceive('save');
+        $this->app->instance(AdxonContent::class, $service);
+        $this->withSession(['adxon_admin' => true, 'adxon_user' => ['permissions' => ['CMS']]])
+            ->post(route('admin.settings.save'), ['hero_slides' => [\Illuminate\Http\UploadedFile::fake()->createWithContent('bad.jpg', 'invalid')], 'hero_slide_interval' => '0'])
+            ->assertSessionHasErrors(['hero_slides.0', 'hero_slide_interval']);
+    }
+
     public function test_section_status_save_preserves_content(): void
     {
         $data = (new AdxonContent)->all();

@@ -54,3 +54,23 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-counter]').forEach(element => counters.observe(element));
     }
 });
+
+// Automatically rotate banners when more than one image is available.
+document.addEventListener('DOMContentLoaded', () => {
+    const banner = document.querySelector('[data-banner-slider]');
+    if (!banner) return;
+    const slides = [...banner.querySelectorAll('.banner-slide')];
+    if (slides.length < 2) return;
+    let current = 0;
+    let timer;
+    const schedule = () => {
+        clearInterval(timer);
+        if (document.hidden) return;
+        timer = setInterval(() => {
+            current = (current + 1) % slides.length;
+            slides.forEach((slide, index) => slide.classList.toggle('is-active', index === current));
+        }, Math.max(3, Math.min(30, Number(banner.dataset.interval) || 5)) * 1000);
+    };
+    document.addEventListener('visibilitychange', schedule);
+    schedule();
+});

@@ -1409,3 +1409,7 @@ label {
     height: 15px;
   }
 }
+
+.agency-hero .banner-slide { opacity: 0; transition: opacity 900ms ease; }
+.agency-hero .banner-slide.is-active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .agency-hero .banner-slide { transition: none; } }
