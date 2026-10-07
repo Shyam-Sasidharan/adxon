@@ -38,6 +38,54 @@ class MarketingRedesignTest extends TestCase
         $this->assertMatchesRegularExpression('/name="sections\[services\]"[^>]*>\s*<option value="1" selected>Active<\/option>/', $html);
     }
 
+    public function test_banner_upload_is_saved_and_rendered(): void
+    {
+        $data = (new AdxonContent)->all();
+        $saved = null;
+        $service = Mockery::mock(AdxonContent::class)->makePartial();
+        $service->shouldReceive('all')->andReturnUsing(function () use (&$saved, $data) { return $saved ?? $data; });
+        $service->shouldReceive('save')->once()->andReturnUsing(function (array $value) use (&$saved) { $saved = $value; });
+        $this->app->instance(AdxonContent::class, $service);
+        try {
+            $image = \Illuminate\Http\UploadedFile::fake()->createWithContent('banner.jpg', file_get_contents(public_path('assets/studio.jpg')));
+            $this->withSession(['adxon_admin' => true, 'adxon_user' => ['permissions' => ['CMS']]])
+                ->post(route('admin.settings.save'), ['hero_image' => $image])
+                ->assertRedirect(route('admin.settings'))->assertSessionHasNoErrors();
+            $this->assertFileExists(public_path($saved['hero']['image_path']));
+            $this->assertSame($data['sections'], $saved['sections']);
+            $saved['sections']['top'] = true;
+            $this->get('/')->assertOk()->assertSee(asset($saved['hero']['image_path']), false);
+        } finally {
+            if ($saved && isset($saved['hero']['image_path'])) {
+                \Illuminate\Support\Facades\File::delete(public_path($saved['hero']['image_path']));
+            }
+        }
+    }
+
+    public function test_invalid_banner_upload_is_rejected(): void
+    {
+        $service = Mockery::mock(AdxonContent::class)->makePartial();
+        $service->shouldNotReceive('save');
+        $this->app->instance(AdxonContent::class, $service);
+        $this->withSession(['adxon_admin' => true, 'adxon_user' => ['permissions' => ['CMS']]])
+            ->post(route('admin.settings.save'), ['hero_image' => \Illuminate\Http\UploadedFile::fake()->createWithContent('bad.jpg', 'not an image')])
+            ->assertSessionHasErrors('hero_image');
+    }
+
+    public function test_banner_can_be_reset_without_changing_other_hero_content(): void
+    {
+        $data = (new AdxonContent)->all();
+        $data['hero']['image_path'] = 'uploads/banners/123.jpg';
+        $service = Mockery::mock(AdxonContent::class)->makePartial();
+        $service->shouldReceive('all')->once()->andReturn($data);
+        $service->shouldReceive('save')->once()->withArgs(fn (array $saved) => $saved['hero']['image_path'] === ''
+            && $saved['hero']['headline'] === $data['hero']['headline']);
+        $this->app->instance(AdxonContent::class, $service);
+        $this->withSession(['adxon_admin' => true, 'adxon_user' => ['permissions' => ['CMS']]])
+            ->post(route('admin.settings.save'), ['hero_reset_image' => '1'])->assertSessionHasNoErrors();
+        $this->assertSame(asset('assets/studio.jpg'), AdxonContent::bannerUrl(['hero' => ['image_path' => '']]));
+    }
+
     public function test_section_status_save_preserves_content(): void
     {
         $data = (new AdxonContent)->all();

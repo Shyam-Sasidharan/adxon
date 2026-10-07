@@ -2,7 +2,9 @@
 
 namespace App\Support;
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule;
 
@@ -29,6 +31,13 @@ class AdxonContent
         'times' => '"Times New Roman", Times, serif',
         'courier' => '"Courier New", Courier, monospace',
     ];
+
+    public static function bannerUrl(array $content): string
+    {
+        $path = $content['hero']['image_path'] ?? '';
+
+        return asset(preg_match('/^uploads\/banners\/[a-f0-9-]+\.(jpg|jpeg|png|webp)$/', $path) ? $path : 'assets/studio.jpg');
+    }
 
     public static function imageUrl(?string $url): ?string
     {
@@ -170,6 +179,8 @@ class AdxonContent
     public function saveSettings(array $payload): void
     {
         validator($payload, [
+            'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=1,min_height=1'],
+            'hero_reset_image' => ['sometimes', 'boolean'],
             'sections' => ['sometimes', 'array:'.implode(',', array_keys(self::SECTIONS))],
             'sections.*' => ['required', 'boolean'],
             'font_family' => ['sometimes', 'required', Rule::in(array_keys(self::FONT_FAMILIES))],
@@ -211,6 +222,17 @@ class AdxonContent
             if (array_key_exists('hero_'.$field, $payload)) {
                 $content['hero'][$field] = trim((string) ($payload['hero_'.$field] ?? ''));
             }
+        }
+
+        if (($payload['hero_image'] ?? null) instanceof UploadedFile) {
+            $image = $payload['hero_image'];
+            $directory = public_path('uploads/banners');
+            File::ensureDirectoryExists($directory);
+            $filename = Str::uuid().'.'.$image->extension();
+            $image->move($directory, $filename);
+            $content['hero']['image_path'] = 'uploads/banners/'.$filename;
+        } elseif (! empty($payload['hero_reset_image'])) {
+            $content['hero']['image_path'] = '';
         }
 
         $this->save($content);
@@ -261,6 +283,7 @@ class AdxonContent
                 'keywords' => 'digital marketing agency, content production, social media management, paid ads, branding, creative agency',
             ],
             'hero' => [
+                'image_path' => '',
                 'eyebrow' => 'Premium Digital Growth Studio',
                 'headline' => 'Build attention into revenue.',
                 'subline' => 'From powerful content to result-driven marketing, we help brands stand out and scale up.',

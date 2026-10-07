@@ -396,7 +396,7 @@
         @endif
 
         @if ($active === 'settings')
-            <form method="post" action="{{ route('admin.settings.save') }}" class="admin-panel settings-grid">
+            <form method="post" action="{{ route('admin.settings.save') }}" enctype="multipart/form-data" class="admin-panel settings-grid">
                 @csrf
                 <section>
                     <h2>Website Sections</h2>
@@ -415,7 +415,12 @@
                     @endforeach
                 </section>
                 <section>
-                    <h2>Hero</h2>
+                    <h2>Hero / Banner</h2>
+                    <img src="{{ \App\Support\AdxonContent::bannerUrl($content) }}" alt="Current banner image" style="width:100%;max-width:420px;max-height:180px;object-fit:cover;border-radius:12px">
+                    <label>Banner image<input type="file" name="hero_image" accept="image/jpeg,image/png,image/webp"></label>
+                    <p>JPG, PNG or WebP, up to 5 MB. Recommended: 1920 ? 1080. Save settings to apply.</p>
+                    @error('hero_image')<p role="alert">{{ $message }}</p>@enderror
+                    <label><input type="checkbox" name="hero_reset_image" value="1"> Restore default banner</label>
                     @foreach (['eyebrow', 'headline', 'subline', 'primary_button', 'secondary_button'] as $field)
                         <label>{{ ucwords(str_replace('_', ' ', $field)) }}<input name="hero_{{ $field }}" value="{{ $content['hero'][$field] }}"></label>
                     @endforeach

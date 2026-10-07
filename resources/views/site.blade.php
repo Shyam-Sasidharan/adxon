@@ -15,7 +15,7 @@
         
 @if (\App\Support\AdxonContent::sectionActive($content, 'top'))
         <section class="agency-hero" id="top">
-            <img class="hero-photo" src="{{ asset('assets/studio.jpg') }}" alt="" fetchpriority="high">
+            <img class="hero-photo" src="{{ \App\Support\AdxonContent::bannerUrl($content) }}" alt="" fetchpriority="high">
             <div class="shell hero-content">
                 <p class="eyebrow"><span class="status-dot"></span>{{ $hero['eyebrow'] }}</p>
                 <h1>{{ $settings['brand'] }}<span>{{ $hero['headline'] }}</span></h1>
