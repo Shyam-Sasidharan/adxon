@@ -328,7 +328,7 @@
 
         @if (isset($collections[$active]))
             @php($meta = $collections[$active])
-            <form method="post" action="{{ route('admin.collection.save', $active) }}" class="admin-panel" data-repeat-form>
+            <form method="post" action="{{ route('admin.collection.save', $active) }}" enctype="multipart/form-data" class="admin-panel" data-repeat-form>
                 @csrf
                 <div class="panel-title">
                     <h2>Edit {{ $meta['title'] }}</h2>
@@ -339,7 +339,15 @@
                         <fieldset class="cms-row">
                             <button class="row-remove" type="button" data-remove-row aria-label="Remove item">&times;</button>
                             @foreach ($meta['fields'] as $field)
-                                @if ($field === 'highlight')
+                                @if ($active === 'portfolio' && $field === 'image_url')
+                                    @if ($image = \App\Support\AdxonContent::projectImageUrl($row['image_url'] ?? null))
+                                        <img src="{{ $image }}" alt="Current project image" style="width:100%;max-width:280px;max-height:160px;object-fit:cover;border-radius:10px">
+                                    @endif
+                                    <input type="hidden" name="rows[{{ $index }}][image_url]" value="{{ $row['image_url'] ?? '' }}">
+                                    <label>Project image<input type="file" name="rows[{{ $index }}][image_upload]" accept="image/jpeg,image/png,image/webp"></label>
+                                    <small>JPG, PNG or WebP, up to 5 MB. Leave empty to keep the current image.</small>
+                                    @error('rows.'.$index.'.image_upload')<p role="alert">{{ $message }}</p>@enderror
+                                @elseif ($field === 'highlight')
                                     <label class="checkbox-label"><input type="checkbox" name="rows[{{ $index }}][highlight]" {{ ! empty($row['highlight']) ? 'checked' : '' }}> Highlight package</label>
                                 @elseif (in_array($field, ['summary', 'features', 'quote', 'excerpt', 'answer', 'note', 'body', 'benefits', 'challenge', 'strategy', 'context'], true))
                                     <label>{{ ucwords(str_replace('_', ' ', $field)) }}<textarea name="rows[{{ $index }}][{{ $field }}]" rows="4">{{ $row[$field] ?? '' }}</textarea></label>
@@ -354,7 +362,10 @@
                     <fieldset class="cms-row">
                         <button class="row-remove" type="button" data-remove-row aria-label="Remove item">&times;</button>
                         @foreach ($meta['fields'] as $field)
-                            @if ($field === 'highlight')
+                            @if ($active === 'portfolio' && $field === 'image_url')
+                                <label>Project image<input type="file" data-name="image_upload" accept="image/jpeg,image/png,image/webp"></label>
+                                <small>JPG, PNG or WebP, up to 5 MB.</small>
+                            @elseif ($field === 'highlight')
                                 <label class="checkbox-label"><input type="checkbox" data-name="highlight"> Highlight package</label>
                             @elseif (in_array($field, ['summary', 'features', 'quote', 'excerpt', 'answer', 'note', 'body', 'benefits', 'challenge', 'strategy', 'context'], true))
                                 <label>{{ ucwords(str_replace('_', ' ', $field)) }}<textarea data-name="{{ $field }}" rows="4"></textarea></label>

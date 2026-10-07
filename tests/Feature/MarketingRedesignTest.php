@@ -86,6 +86,48 @@ class MarketingRedesignTest extends TestCase
         $this->assertSame(asset('assets/studio.jpg'), AdxonContent::bannerUrl(['hero' => ['image_path' => '']]));
     }
 
+    public function test_case_study_images_can_be_uploaded_and_preserved(): void
+    {
+        $data = (new AdxonContent)->all();
+        $saved = null;
+        $service = Mockery::mock(AdxonContent::class)->makePartial();
+        $service->shouldReceive('all')->andReturnUsing(function () use (&$saved, $data) { return $saved ?? $data; });
+        $service->shouldReceive('save')->twice()->andReturnUsing(function (array $value) use (&$saved) { $saved = $value; });
+        $this->app->instance(AdxonContent::class, $service);
+        $uploadedPath = null;
+        try {
+            $this->withSession(['adxon_admin' => true, 'adxon_user' => ['permissions' => ['CMS']]])
+                ->get(route('admin.collection', 'portfolio'))->assertOk()
+                ->assertSee('type="file" name="rows[0][image_upload]"', false)
+                ->assertDontSee('>Image Url<', false);
+            $image = \Illuminate\Http\UploadedFile::fake()->createWithContent('project.jpg', file_get_contents(public_path('assets/studio.jpg')));
+            $this->post(route('admin.collection.save', 'portfolio'), ['rows' => [['title' => 'Uploaded project', 'image_upload' => $image]]])
+                ->assertRedirect(route('admin.collection', 'portfolio'))->assertSessionHasNoErrors();
+            $uploadedPath = $saved['portfolio'][0]['image_url'];
+            $this->assertMatchesRegularExpression('/^uploads\/projects\/.+\.jpg$/', $uploadedPath);
+            $this->assertFileExists(public_path($uploadedPath));
+            $saved['sections']['work'] = true;
+            $this->get('/')->assertOk()->assertSee(asset($uploadedPath), false);
+            $this->get('/insights/portfolio/0')->assertOk()->assertSee(asset($uploadedPath), false);
+            $this->post(route('admin.collection.save', 'portfolio'), ['rows' => [['title' => 'Edited project', 'image_url' => $uploadedPath]]])
+                ->assertSessionHasNoErrors();
+            $this->assertSame($uploadedPath, $saved['portfolio'][0]['image_url']);
+        } finally {
+            if ($uploadedPath) { \Illuminate\Support\Facades\File::delete(public_path($uploadedPath)); }
+        }
+    }
+
+    public function test_case_study_rejects_invalid_images_before_saving(): void
+    {
+        $service = Mockery::mock(AdxonContent::class)->makePartial();
+        $service->shouldNotReceive('save');
+        $this->app->instance(AdxonContent::class, $service);
+        $this->withSession(['adxon_admin' => true, 'adxon_user' => ['permissions' => ['CMS']]])
+            ->post(route('admin.collection.save', 'portfolio'), ['rows' => [['title' => 'Project',
+                'image_upload' => \Illuminate\Http\UploadedFile::fake()->createWithContent('bad.jpg', 'invalid')]]])
+            ->assertSessionHasErrors('rows.0.image_upload');
+    }
+
     public function test_section_status_save_preserves_content(): void
     {
         $data = (new AdxonContent)->all();

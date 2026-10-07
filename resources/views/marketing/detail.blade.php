@@ -14,7 +14,7 @@
         <p class="eyebrow">{{ $item['category'] }}</p>
         <h1>{{ $item['title'] }}</h1>
         <p class="detail-intro">{{ $pageDescription }}</p>
-        @if ($image = \App\Support\AdxonContent::imageUrl($item['image_url'] ?? null))<img class="detail-image" src="{{ $image }}" alt="{{ $item['title'] }}">@endif
+        @if ($image = \App\Support\AdxonContent::projectImageUrl($item['image_url'] ?? null))<img class="detail-image" src="{{ $image }}" alt="{{ $item['title'] }}">@endif
         @if ($kind === 'portfolio')
             <div class="case-facts">
                 @foreach (['client' => 'Client', 'category' => 'Industry / Category', 'services' => 'Services', 'metric' => 'Outcome', 'growth' => 'Growth'] as $key => $label)

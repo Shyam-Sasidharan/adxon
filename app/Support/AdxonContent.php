@@ -39,6 +39,15 @@ class AdxonContent
         return asset(preg_match('/^uploads\/banners\/[a-f0-9-]+\.(jpg|jpeg|png|webp)$/', $path) ? $path : 'assets/studio.jpg');
     }
 
+    public static function projectImageUrl(?string $value): ?string
+    {
+        if ($value && preg_match('/^uploads\/projects\/[a-f0-9-]+\.(jpg|jpeg|png|webp)$/', $value)) {
+            return asset($value);
+        }
+
+        return self::imageUrl($value);
+    }
+
     public static function imageUrl(?string $url): ?string
     {
         return $url && filter_var($url, FILTER_VALIDATE_URL) && in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true) ? $url : null;
@@ -117,6 +126,14 @@ class AdxonContent
             return;
         }
 
+        if ($key === 'portfolio') {
+            validator(['rows' => $rows], [
+                'rows' => ['array'],
+                'rows.*' => ['array'],
+                'rows.*.image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=1,min_height=1'],
+            ])->validate();
+        }
+
         $cleanRows = [];
 
         foreach ($rows as $row) {
@@ -139,6 +156,14 @@ class AdxonContent
             }
 
             if ($hasValue) {
+                if ($key === 'portfolio' && ($row['image_upload'] ?? null) instanceof UploadedFile) {
+                    $image = $row['image_upload'];
+                    $directory = public_path('uploads/projects');
+                    File::ensureDirectoryExists($directory);
+                    $filename = Str::uuid().'.'.$image->extension();
+                    $image->move($directory, $filename);
+                    $clean['image_url'] = 'uploads/projects/'.$filename;
+                }
                 $cleanRows[] = $clean;
             }
         }

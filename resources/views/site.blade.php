@@ -117,7 +117,7 @@
             <div class="work-grid">
                 @foreach ($content['portfolio'] as $index => $item)
                     <article class="project">
-                        <a class="project-visual" href="{{ route('site.detail', ['kind' => 'portfolio', 'index' => $index]) }}" aria-label="View {{ $item['title'] }}"><img src="{{ \App\Support\AdxonContent::imageUrl($item['image_url'] ?? null) ?? asset('assets/'.$projectImages[$loop->index % 3]) }}" alt="{{ $item['category'] }}" loading="lazy"><span>{{ $item['category'] }}</span></a>
+                        <a class="project-visual" href="{{ route('site.detail', ['kind' => 'portfolio', 'index' => $index]) }}" aria-label="View {{ $item['title'] }}"><img src="{{ \App\Support\AdxonContent::projectImageUrl($item['image_url'] ?? null) ?? asset('assets/'.$projectImages[$loop->index % 3]) }}" alt="{{ $item['category'] }}" loading="lazy"><span>{{ $item['category'] }}</span></a>
                         <div class="project-title"><h3>{{ $item['title'] }}</h3><i data-lucide="arrow-up-right"></i></div><p>{{ $item['metric'] }}</p>
                         <a class="text-link" href="{{ route('site.detail', ['kind' => 'portfolio', 'index' => $index]) }}">View case study <i data-lucide="arrow-right"></i></a>
                     </article>

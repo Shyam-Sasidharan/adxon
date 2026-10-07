@@ -114,7 +114,7 @@ class AdminController extends Controller
             return $redirect;
         }
 
-        $content->saveCollection($collection, $request->input('rows', []));
+        $content->saveCollection($collection, $request->all()['rows'] ?? []);
 
         return redirect()->route('admin.collection', $collection)->with('status', $content->collections()[$collection]['title'].' saved.');
     }
