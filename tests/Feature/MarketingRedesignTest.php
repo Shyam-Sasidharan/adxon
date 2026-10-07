@@ -8,6 +8,51 @@ use Tests\TestCase;
 
 class MarketingRedesignTest extends TestCase
 {
+    public function test_inactive_sections_hide_content_links_and_detail_pages(): void
+    {
+        $content = (new AdxonContent)->all();
+        $content['sections'] = array_fill_keys(array_keys(AdxonContent::SECTIONS), false);
+        $this->contentService($content);
+        $response = $this->get('/')->assertOk();
+        foreach (['top', 'about', 'services', 'solutions', 'work', 'pricing', 'blog', 'contact'] as $section) {
+            $response->assertDontSee('id="'.$section.'"', false);
+            $response->assertDontSee('#'.$section.'"', false);
+        }
+        $this->get('/insights/portfolio/0')->assertNotFound();
+        $this->get('/insights/blogs/0')->assertNotFound();
+        $this->post('/enquiry', [])->assertNotFound();
+    }
+
+    public function test_settings_dropdown_displays_saved_inactive_status(): void
+    {
+        $content = (new AdxonContent)->all();
+        $content['sections']['about'] = false;
+        $content['sections']['services'] = true;
+        $service = Mockery::mock(AdxonContent::class)->makePartial();
+        $service->shouldReceive('all')->andReturn($content);
+        $this->app->instance(AdxonContent::class, $service);
+        $response = $this->withSession(['adxon_admin' => true, 'adxon_user' => ['permissions' => ['CMS']]])
+            ->get(route('admin.settings'))->assertOk();
+        $html = $response->getContent();
+        $this->assertMatchesRegularExpression('/name="sections\[about\]"[^>]*>\s*<option value="1"\s*>Active<\/option>\s*<option value="0" selected>Inactive<\/option>/', $html);
+        $this->assertMatchesRegularExpression('/name="sections\[services\]"[^>]*>\s*<option value="1" selected>Active<\/option>/', $html);
+    }
+
+    public function test_section_status_save_preserves_content(): void
+    {
+        $data = (new AdxonContent)->all();
+        $service = Mockery::mock(AdxonContent::class)->makePartial();
+        $service->shouldReceive('all')->once()->andReturn($data);
+        $service->shouldReceive('save')->once()->withArgs(fn (array $saved) =>
+            $saved['sections']['about'] === false && $saved['sections']['top'] === true
+            && $saved['services'] === $data['services'] && $saved['hero'] === $data['hero']
+        );
+        $this->app->instance(AdxonContent::class, $service);
+        $this->withSession(['adxon_admin' => true, 'adxon_user' => ['permissions' => ['CMS']]])
+            ->post(route('admin.settings.save'), ['sections' => ['about' => '0', 'top' => '1']])
+            ->assertRedirect(route('admin.settings'))->assertSessionHasNoErrors();
+    }
+
     public function test_homepage_renders_sections_and_local_assets(): void
     {
         $response = $this->get('/')->assertOk();
@@ -81,7 +126,7 @@ class MarketingRedesignTest extends TestCase
 
     public function test_consultation_preserves_the_existing_enquiry_flow(): void
     {
-        $this->mock(AdxonContent::class)->shouldReceive('appendEnquiry')->once()->withArgs(fn ($enquiry) => $enquiry['name'] === 'Test client' && $enquiry['message'] === 'A new campaign');
+        $this->mock(AdxonContent::class)->shouldReceive('all')->once()->andReturn(['sections' => ['contact' => true]])->getMock()->shouldReceive('appendEnquiry')->once()->withArgs(fn ($enquiry) => $enquiry['name'] === 'Test client' && $enquiry['message'] === 'A new campaign');
         $this->post(route('enquiry.store'), ['name' => 'Test client', 'email' => 'client@example.test', 'message' => 'A new campaign'])->assertRedirect(route('home', ['sent' => 1]).'#contact');
     }
 

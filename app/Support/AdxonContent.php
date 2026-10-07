@@ -8,6 +8,19 @@ use Illuminate\Validation\Rule;
 
 class AdxonContent
 {
+    public const SECTIONS = [
+        'top' => 'Home', 'about' => 'About', 'services' => 'Services',
+        'solutions' => 'Solutions', 'work' => 'Case Studies', 'pricing' => 'Pricing',
+        'blog' => 'Resources', 'contact' => 'Contact', 'trust' => 'Brand Statistics & Client Logos',
+        'results' => 'Performance Results', 'process' => 'Our Process',
+        'testimonials' => 'Testimonials', 'faqs' => 'FAQ',
+    ];
+
+    public static function sectionActive(array $content, string $section): bool
+    {
+        return (bool) ($content['sections'][$section] ?? true);
+    }
+
     public const FONT_FAMILIES = [
         'default' => 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         'arial' => 'Arial, Helvetica, sans-serif',
@@ -35,7 +48,7 @@ class AdxonContent
         $defaults = $this->defaults();
         $merged = array_replace($defaults, $content);
 
-        foreach (['settings', 'seo', 'hero'] as $group) {
+        foreach (['settings', 'seo', 'hero', 'sections'] as $group) {
             $merged[$group] = array_replace($defaults[$group], $content[$group] ?? []);
         }
 
@@ -157,6 +170,8 @@ class AdxonContent
     public function saveSettings(array $payload): void
     {
         validator($payload, [
+            'sections' => ['sometimes', 'array:'.implode(',', array_keys(self::SECTIONS))],
+            'sections.*' => ['required', 'boolean'],
             'font_family' => ['sometimes', 'required', Rule::in(array_keys(self::FONT_FAMILIES))],
             'font_size' => ['sometimes', 'required', 'integer', 'between:12,24'],
             'font_style' => ['sometimes', 'required', Rule::in(['normal', 'italic'])],
@@ -167,6 +182,12 @@ class AdxonContent
             'terms_url' => ['nullable', 'url:http,https'],
         ])->validate();
         $content = $this->all();
+
+        if (isset($payload['sections'])) {
+            foreach ($payload['sections'] as $section => $enabled) {
+                $content['sections'][$section] = (bool) $enabled;
+            }
+        }
 
         foreach (['font_family', 'font_size', 'font_style', 'instagram_url', 'linkedin_url', 'facebook_url', 'privacy_url', 'terms_url'] as $field) {
             if (array_key_exists($field, $payload)) {
@@ -217,6 +238,7 @@ class AdxonContent
     private function defaults(): array
     {
         return [
+            'sections' => array_fill_keys(array_keys(self::SECTIONS), true),
             'settings' => [
                 'brand' => 'Adxon',
                 'tagline' => 'Creative content and result-driven marketing strategies that grow your brand.',

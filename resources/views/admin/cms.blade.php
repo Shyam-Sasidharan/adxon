@@ -399,6 +399,16 @@
             <form method="post" action="{{ route('admin.settings.save') }}" class="admin-panel settings-grid">
                 @csrf
                 <section>
+                    <h2>Website Sections</h2>
+                    <p>Inactive sections and their navigation links are hidden. Content is kept for reactivation.</p>
+                    @foreach (\App\Support\AdxonContent::SECTIONS as $id => $label)
+                        <label>{{ $label }}<select name="sections[{{ $id }}]">
+                            <option value="1" @selected(filter_var(old('sections.'.$id, $content['sections'][$id]), FILTER_VALIDATE_BOOLEAN))>Active</option>
+                            <option value="0" @selected(!filter_var(old('sections.'.$id, $content['sections'][$id]), FILTER_VALIDATE_BOOLEAN))>Inactive</option>
+                        </select></label>
+                    @endforeach
+                </section>
+                <section>
                     <h2>Business</h2>
                     @foreach (['brand', 'tagline', 'phone', 'email', 'location', 'cta'] as $field)
                         <label>{{ ucwords(str_replace('_', ' ', $field)) }}<input name="{{ $field }}" value="{{ $content['settings'][$field] }}"></label>

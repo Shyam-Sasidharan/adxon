@@ -19,6 +19,8 @@ class HomeController extends Controller
 
     public function storeEnquiry(Request $request, AdxonContent $content): RedirectResponse
     {
+        abort_unless(AdxonContent::sectionActive($content->all(), 'contact'), 404);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:160'],
@@ -39,6 +41,7 @@ class HomeController extends Controller
     {
         abort_unless(in_array($kind, ['portfolio', 'blogs'], true), 404);
         $data = $content->all();
+        abort_unless(AdxonContent::sectionActive($data, $kind === 'portfolio' ? 'work' : 'blog'), 404);
         abort_unless(isset($data[$kind][$index]), 404);
 
         return view('marketing.detail', ['content' => $data, 'item' => $data[$kind][$index], 'kind' => $kind]);
