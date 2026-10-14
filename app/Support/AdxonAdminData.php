@@ -40,6 +40,8 @@ class AdxonAdminData
             'name' => trim((string) ($payload['name'] ?? '')),
             'email' => trim((string) ($payload['email'] ?? '')),
             'phone' => trim((string) ($payload['phone'] ?? '')),
+            'budget' => trim((string) ($payload['budget'] ?? '')),
+            'website_unread' => (bool) ($payload['website_unread'] ?? false),
             'business' => trim((string) ($payload['business'] ?? '')),
             'location' => trim((string) ($payload['location'] ?? '')),
             'service' => trim((string) ($payload['service'] ?? '')),
@@ -70,6 +72,22 @@ class AdxonAdminData
             }
         }
         $this->save($data);
+    }
+
+    public function markWebsiteLeadsRead(): void
+    {
+        $data = $this->all();
+        $changed = false;
+        foreach ($data['leads'] as &$lead) {
+            if (! empty($lead['website_unread'])) {
+                $lead['website_unread'] = false;
+                $changed = true;
+            }
+        }
+        unset($lead);
+        if ($changed) {
+            $this->save($data);
+        }
     }
 
     public function addInvoice(array $payload): void

@@ -1,7 +1,14 @@
 <nav aria-label="Workspace navigation">
     <span class="sidebar-label">Workspace</span>
     @foreach ([['Dashboard', 'dashboard', 'admin.dashboard', 'Overview', 'layout-dashboard'], ['Campaigns', 'campaigns', 'admin.platform.campaigns', 'Campaigns', 'megaphone'], ['Lead View', 'lead_list', 'admin.leads.list', 'Leads', 'contact'], ['Clients', 'clients', 'admin.platform.clients', 'Clients', 'building-2']] as [$permission, $key, $route, $label, $icon])
-        @if ($canAccess($permission))<a class="{{ $active === $key ? 'active' : '' }}" href="{{ route($route) }}"><i data-lucide="{{ $icon }}"></i>{{ $label }}</a>@endif
+        @if ($canAccess($permission))
+            <a class="{{ $active === $key ? 'active' : '' }}" href="{{ route($route) }}"><i data-lucide="{{ $icon }}"></i>{{ $label }}
+                @if ($key === 'lead_list')
+                    @php($unreadLeads = collect($adminData['leads'])->filter(fn ($lead) => ! empty($lead['website_unread']))->count())
+                    <span class="lead-notification-count" data-lead-notification-count data-url="{{ route('admin.leads.notifications') }}" aria-label="{{ $unreadLeads }} new website leads" @if($unreadLeads === 0) hidden @endif>{{ $unreadLeads }}</span>
+                @endif
+            </a>
+        @endif
     @endforeach
     @if ($canAccess('Analytics'))
         <span class="sidebar-label">Performance</span>

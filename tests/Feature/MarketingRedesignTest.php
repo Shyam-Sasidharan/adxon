@@ -261,6 +261,7 @@ class MarketingRedesignTest extends TestCase
 
     public function test_consultation_preserves_the_existing_enquiry_flow(): void
     {
+        $this->mock(\App\Support\AdxonAdminData::class)->shouldReceive('addLead')->once()->withArgs(fn ($lead) => $lead['name'] === 'Test client' && $lead['source'] === 'Website' && $lead['website_unread'] === true);
         $this->mock(AdxonContent::class)->shouldReceive('all')->once()->andReturn(['sections' => ['contact' => true]])->getMock()->shouldReceive('appendEnquiry')->once()->withArgs(fn ($enquiry) => $enquiry['name'] === 'Test client' && $enquiry['message'] === 'A new campaign');
         $this->post(route('enquiry.store'), ['name' => 'Test client', 'email' => 'client@example.test', 'message' => 'A new campaign'])->assertRedirect(route('home', ['sent' => 1]).'#contact');
     }

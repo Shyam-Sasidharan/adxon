@@ -1127,3 +1127,5 @@
     margin: 15mm;
   }
 }
+
+.lead-notification-count { margin-left: auto; min-width: 24px; padding: 3px 7px; border-radius: 999px; background: #edc454; color: #182820; text-align: center; font-size: 12px; font-weight: 700; line-height: 18px; }

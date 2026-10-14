@@ -34,6 +34,8 @@ Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login'])->name('admin.login.post');
     Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
     Route::get('/leads', [AdminController::class, 'leads'])->name('admin.leads');
+    Route::get('/leads/notifications', [AdminController::class, 'leadNotifications'])->name('admin.leads.notifications');
+    Route::post('/leads/notifications/read', [AdminController::class, 'readLeadNotifications'])->name('admin.leads.notifications.read');
     Route::get('/leads/list', [AdminController::class, 'leadList'])->name('admin.leads.list');
     Route::post('/leads', [AdminController::class, 'saveLead'])->name('admin.leads.save');
     Route::patch('/leads/{lead}/stage', [AdminController::class, 'updateLeadStage'])->name('admin.leads.stage');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\AdxonContent;
+use App\Support\AdxonAdminData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,7 +18,7 @@ class HomeController extends Controller
         ]);
     }
 
-    public function storeEnquiry(Request $request, AdxonContent $content): RedirectResponse
+    public function storeEnquiry(Request $request, AdxonContent $content, AdxonAdminData $adminData): RedirectResponse
     {
         abort_unless(AdxonContent::sectionActive($content->all(), 'contact'), 404);
 
@@ -34,6 +35,17 @@ class HomeController extends Controller
             'budget' => $validated['budget'] ?? '',
             'phone' => $validated['phone'] ?? '',
             'created_at' => now()->toIso8601String(),
+        ]);
+
+        $adminData->addLead([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? '',
+            'source' => 'Website',
+            'stage' => 'New Lead',
+            'website_unread' => true,
+            'budget' => $validated['budget'] ?? '',
+            'notes' => $validated['message'],
         ]);
 
         return redirect()->route('home', ['sent' => 1])->withFragment('contact');

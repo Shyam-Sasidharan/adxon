@@ -49,3 +49,26 @@ document.addEventListener('DOMContentLoaded', () => {
         button.disabled = false; button.removeAttribute('aria-busy');
     }));
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const badge = document.querySelector('[data-lead-notification-count]');
+    if (!badge) return;
+    let pending = false;
+    const update = async () => {
+        if (pending || document.hidden) return;
+        pending = true;
+        try {
+            const response = await fetch(badge.dataset.url, { headers: { Accept: 'application/json' }, cache: 'no-store' });
+            if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return;
+            const { count } = await response.json();
+            if (!Number.isInteger(count) || count < 0) return;
+            badge.textContent = String(count);
+            badge.hidden = count === 0;
+            badge.setAttribute('aria-label', `${count} new website leads`);
+        } catch (_) { /* Keep the last count if the network is unavailable. */ }
+        finally { pending = false; }
+    };
+    update();
+    setInterval(update, 15000);
+    document.addEventListener('visibilitychange', update);
+});

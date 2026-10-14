@@ -177,6 +177,24 @@ class AdminController extends Controller
         return $this->view('lead_list', $content, $adminData);
     }
 
+    public function leadNotifications(Request $request, AdxonAdminData $adminData)
+    {
+        if ($redirect = $this->requirePermission($request, 'Lead View')) {
+            return $redirect;
+        }
+        $count = collect($adminData->all()['leads'])->filter(fn ($lead) => ! empty($lead['website_unread']))->count();
+        return response()->json(['count' => $count])->header('Cache-Control', 'no-store');
+    }
+
+    public function readLeadNotifications(Request $request, AdxonAdminData $adminData): RedirectResponse
+    {
+        if ($redirect = $this->requirePermission($request, 'Lead View')) {
+            return $redirect;
+        }
+        $adminData->markWebsiteLeadsRead();
+        return redirect()->route('admin.leads.list')->with('status', 'Lead notifications marked as read.');
+    }
+
     public function saveLead(Request $request, AdxonAdminData $adminData): RedirectResponse
     {
         if ($redirect = $this->requirePermission($request, 'Lead Edit')) {
