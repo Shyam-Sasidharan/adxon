@@ -221,6 +221,7 @@
 
                 <label>Your name<input name="name" value="{{ old('name') }}" required maxlength="120" autocomplete="name"></label>
                 <label>Email address<input name="email" type="email" value="{{ old('email') }}" required maxlength="160" autocomplete="email"></label>
+                <label>Phone number<input name="phone" type="tel" value="{{ old('phone') }}" maxlength="30" autocomplete="tel" placeholder="e.g. +91 98765 43210"></label>
                 <label>Monthly budget<input name="budget" value="{{ old('budget') }}" maxlength="120" placeholder="e.g. Rs 30,000 - Rs 50,000"></label>
                 <label>What do you have in mind?<textarea name="message" rows="3" required maxlength="2000">{{ old('message') }}</textarea></label>
                 <button class="button primary" type="submit">Book a free consultation <i data-lucide="arrow-up-right"></i></button>

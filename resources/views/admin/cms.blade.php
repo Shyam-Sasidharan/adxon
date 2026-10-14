@@ -391,6 +391,7 @@
                                 <div>
                                     <strong>{{ $enquiry['name'] }}</strong>
                                     <span>{{ $enquiry['email'] }} &middot; {{ $enquiry['budget'] }}</span>
+                                    @if (! empty($enquiry['phone']))<span>Phone: {{ $enquiry['phone'] }}</span>@endif
                                     <p>{{ $enquiry['message'] }}</p>
                                     <small>{{ \Carbon\Carbon::parse($enquiry['created_at'])->format('d M Y, h:i A') }}</small>
                                 </div>

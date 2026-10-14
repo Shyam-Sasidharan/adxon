@@ -24,6 +24,7 @@ class HomeController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:160'],
+            'phone' => ['nullable', 'string', 'max:30'],
             'budget' => ['nullable', 'string', 'max:120'],
             'message' => ['required', 'string', 'max:2000'],
         ]);
@@ -31,6 +32,7 @@ class HomeController extends Controller
         $content->appendEnquiry([
             ...$validated,
             'budget' => $validated['budget'] ?? '',
+            'phone' => $validated['phone'] ?? '',
             'created_at' => now()->toIso8601String(),
         ]);
 
